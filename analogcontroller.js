@@ -72,7 +72,7 @@ class AnalogController {
     else if ((kb.isTwo) && (keyCode > 117)) { return 0; }
     else if ((!kb.isTwo) && (keyCode > 96)) { return 0; }
     if (!this.refreshBuffer()) { return 0; }
-    if (this.autoUpd) { console.log(keyCode, this.allKeys[keyCode]); return this.allKeys[keyCode]; }
+    if (this.autoUpd) { return this.allKeys[keyCode]; }
     for (let i = 1; (i < BufferSize) && (buffer[i] > 0); i += 2) {
       if (buffer[i-1] == keyCode) { return buffer[i]>255?255:buffer[i]; }
     }

@@ -162,8 +162,8 @@ class LedController {
   reset() {
     let { kb } = this;
     if (!kb) { return false; }
-    if (!kb.sendFeature(USB.SdkResetAll)) { this.sdkEnabled = false; return true; }
-    else { return false; }
+    if (!kb.sendFeature(USB.SdkResetAll)) { return false; }
+    else { this.sdkEnabled = false; return true; }
   }
   getSafeLedIndex(row, col) {
     let { kb } = this, { None } = Keys;

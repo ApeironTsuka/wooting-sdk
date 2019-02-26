@@ -189,12 +189,30 @@ class LedController {
     this.setColormap(this.profile.map);
     return ret;
   }
+  setLoc(row, col, r, g, b) {
+    let { Direct, Array, Profile } = RGB.Modes;
+    switch (this.mode) {
+      case Direct: return this.directSetLoc(row, col, r, g, b);
+      case Array: return this.arraySetLoc(row, col, r, g, b);
+      case Profile: return this.profileSetLoc(row, col, r, g, b);
+      default: return false;
+    }
+  }
   setKey(key, r, g, b) {
     let { Direct, Array, Profile } = RGB.Modes;
     switch (this.mode) {
       case Direct: return this.directSetKey(key, r, g, b);
       case Array: return this.arraySetKey(key, r, g, b);
       case Profile: return this.profileSetKey(key, r, g, b);
+      default: return false;
+    }
+  }
+ resetLoc(row, col) {
+    let { Direct, Array, Profile } = RGB.Modes;
+    switch (this.mode) {
+      case Direct: return this.directResetLoc(row, col);
+      case Array: return this.arrayResetLoc(row, col);
+      case Profile: return this.profileResetLoc(row, col);
       default: return false;
     }
   }

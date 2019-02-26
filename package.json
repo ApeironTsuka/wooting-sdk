@@ -1,0 +1,18 @@
+{
+  "name": "wooting-sdk",
+  "version": "1.0.0",
+  "description": "Module for controlling Wooting One and Two keyboards",
+  "main": "keyboard.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "ApeironTsuka",
+  "license": "ISC",
+  "dependencies": {
+    "node-hid": "^0.7.7"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ApeironTsuka/wooting-sdk.git"
+  }
+}

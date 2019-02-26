@@ -81,8 +81,8 @@ class LedController {
     }
   }
   get kb() { return this._kb; }
-  set autoUpdate(v) { this._autoUpd = !!v; }
-  get autoUpdate() { return this._autoUpd; }
+  set autoUpd(v) { this._autoUpd = !!v; }
+  get autoUpd() { return this._autoUpd; }
 
   getCurrentProfile() {
     let { kb, hdl } = this;

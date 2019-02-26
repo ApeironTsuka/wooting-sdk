@@ -19,23 +19,40 @@ const Analog = {
 class AnalogController {
   constructor() {
     this.buffer = [];
+    this.allKeys = undefined;
     this._kb = undefined;
     this._autoUpd = false;
+    this.tmr = undefined;
   }
   set kb(b) {
     if (!b.connected()) { throw new Error(`Keyboard isn't connected`); }
     this._kb = b;
     this.hdl = b.analoghdl;
+    this.allKeys = new Array(b.isTwo?117:96);
+    this.allKeys.fill(0);
   }
   get kb() { return this._kb; }
-  set autoUpdate(v) { this._autoUpd = !!v; }
-  get autoUpdate() { return this._autoUpd; }
+  set autoUpd(v) {
+    this._autoUpd = !!v;
+    if (this._autoUpd) {
+      let { BufferSize } = Analog;
+      this.tmr = true;
+      this.tmr = setInterval(() => {
+        this.refreshBuffer();
+        let { buffer, allKeys } = this;
+        allKeys.fill(0);
+        for (let i = 0; i < BufferSize; i += 2) { allKeys[buffer[i]] = Math.min(buffer[i+1], 255); }
+      }, 5);
+    }
+    else if (this.tmr) { clearInterval(this.tmr); this.tmr = undefined; }
+  }
+  get autoUpd() { return this._autoUpd; }
   refreshBuffer() {
     let { kb, hdl } = this;
     if (!kb) { return false; }
     try {
       let b = [], { BufferSize } = Analog;
-      while (b.length < BufferSize) { b = [...b, ...hdl.readSync()]; }
+      while (b.length < BufferSize) { b = [...b, ...hdl.readTimeout(0)]; }
       this.buffer = b;
     } catch (e) { kb.disconnect(); return false; }
     return true;
@@ -52,7 +69,10 @@ class AnalogController {
     let { kb, buffer } = this, { BufferSize } = Analog;
     if (!kb) { return 0; }
     else if (keyCode == Keys.None) { return 0; }
+    else if ((kb.isTwo) && (keyCode > 117)) { return 0; }
+    else if ((!kb.isTwo) && (keyCode > 96)) { return 0; }
     if (!this.refreshBuffer()) { return 0; }
+    if (this.autoUpd) { console.log(keyCode, this.allKeys[keyCode]); return this.allKeys[keyCode]; }
     for (let i = 1; (i < BufferSize) && (buffer[i] > 0); i += 2) {
       if (buffer[i-1] == keyCode) { return buffer[i]>255?255:buffer[i]; }
     }
@@ -60,12 +80,17 @@ class AnalogController {
   }
   readFull() {
     let { BufferSize } = Analog, keys = new Array(BufferSize), written = 0;
-    if (!this.refreshBuffer()) { return undefined; }
-    let { buffer } = this;
-    for (let i = 0; i < BufferSize; i += 2) {
-      let key = buffer[i], val = bufer[i+1];
-      if (val > 0) { keys[i] = key; keys[i+1] = val>255?255:val; written++; }
-      else { return { total: written, keys }; }
+    if (this.autoUpd) {
+      let { allKeys } = this, k = 0;
+      for (let i = 0, l = allKeys.length; i < l; i++, k+=2) { if (allKeys[i] > 0) { keys[k] = i; keys[k+1] = allKeys[i]; written++; } }
+    } else {
+      if (!this.refreshBuffer()) { return undefined; }
+      let { buffer } = this;
+      for (let i = 0; i < BufferSize; i += 2) {
+        let key = buffer[i], val = buffer[i+1];
+        if (val > 0) { keys[i] = key; keys[i+1] = Math.min(val, 255); written++; }
+        else { return { total: written, keys }; }
+      }
     }
     return { total: written, keys };
   }

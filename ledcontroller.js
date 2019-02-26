@@ -52,7 +52,7 @@ const USB = {
 class LedController {
   constructor() {
     this._kb = undefined;
-    this._mode = RGB.Modes.ARRAY;
+    this._mode = RGB.Modes.Array;
     this._autoUpd = false;
     this.profileMap = [];
     let map = this.sdkMap = [];
@@ -94,6 +94,7 @@ class LedController {
     let ind = this.getCurrentProfile();
     if (ind == -1) { return false; }
     if (!(this.profile = this.loadProfile(ind, set))) { return false; }
+    return true;
   }
   loadProfile(n = 0, set = true) {
     let { kb, hdl } = this;

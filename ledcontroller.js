@@ -136,7 +136,7 @@ class LedController {
     let { kb, hdl } = this;
     if (!kb) { return false; }
     if ((n < 0) || (n > 255)) { return false; }
-    if (!this.profile) { if (!this.loadCurrentRgbProfile(false)) { return false; } }
+    if (!this.profile) { if (!this.loadCurrentProfile(false)) { return false; } }
     if (this.sdkEnabled) { return false; }
     let { profile } = this;
     let packRgb = (rgb) => { let x = ((0xf8&rgb[0])<<8)|((0xfc&rgb[1])<<3)|((0xf8&rgb[2])>>3); return [x&0xff, (x&0xff00)>>8 ]; };

@@ -1,81 +1,84 @@
-SDK for controlling Wooting One and Two keyboards.
+# SDK for controlling Wooting One and Two keyboards.
 
-I don't know how to do proper readmes.
+## Usage example:
 
-Usage example:
+`const { Keyboard } = require('wooting-sdk');`
 
-const { Keyboard } = require('wooting-sdk');
-
-// Enumerate USB devices and find+return the first One/Two found
+## Enumerate USB devices and find+return the first One/Two found
 let kb = Keyboard.get();
 
-// Internal setup
-kb.init();
+## Internal setup
+`kb.init();`
 
-// Get the version number of the installed firmware
-kb.getFirmwareVersion();
+## Get the version number of the installed firmware
+`kb.getFirmwareVersion();`
 
-// Analog
+# Analog
 
-// Read the analog value of the G key
-kb.analog.readKey(Keyboard.Analog.G);
-// Other keys can be found in analog.js
+## Read the analog value of the G key
+`kb.analog.readKey(Keyboard.Analog.G);`  
+Other keys can be found in analog.js
 
-// Read the analog value of a row/column
-kb.analog.readLoc(row, column);
+## Read the analog value of a row/column
+`kb.analog.readLoc(row, column);`
 
-// LEDs
+# LEDs
 
-// Select a mode. Defaults to Array. Possible modes: Direct, Array, Profile
-kb.leds.mode = Keyboard.Modes.Direct;
+## Select a mode. Defaults to Array. Possible modes: Direct, Array, Profile
+`kb.leds.mode = Keyboard.Modes.Direct;`
 
-// Initialize the LED controller
-kb.leds.init();
+## Initialize the LED controller
+`kb.leds.init();`
 
-// Set the L key to white
-kb.leds.setKey(Keyboard.LEDs.L, 255, 255, 255);
+## Set the L key to white
+`kb.leds.setKey(Keyboard.LEDs.L, 255, 255, 255);`
 
-// Update the keyboard LED state
-kb.leds.updateKeyboard();
+## Update the keyboard LED state
+`kb.leds.updateKeyboard();`
 
-// Or optionally, enable auto-update so that setKey et al calls updateKeyboard for you
-kb.leds.autoUpd = true;
+Or optionally, enable auto-update so that setKey et al calls updateKeyboard for you
+`kb.leds.autoUpd = true;`
 
-// Set a row/column
-kb.leds.setLoc(row, column, r, g, b);
+## Set a row/column
+`kb.leds.setLoc(row, column, r, g, b);`
 
-// Reset the L key
-kb.leds.resetKey(Keyboard.LEDs.L);
+## Reset the L key
+`kb.leds.resetKey(Keyboard.LEDs.L);`
 
-// Reset a row/column
-kb.leds.resetLoc(row, column);
+## Reset a row/column
+`kb.leds.resetLoc(row, column);`
 
-// Set the keyboard brightness. Ranges 0 to 255.
-// Note that it only works if mode is Profile or before leds.init() is called or after leds.reset() is called, as Direct/Array enable the SDK and this blocks the call that sets brightness.
-kb.leds.setBrightness(level);
+## Set the keyboard brightness. Ranges 0 to 255.  
+Note that it only works if mode is Profile or before leds.init() is called or after leds.reset() is called, as Direct/Array enable the SDK and this blocks the call that sets brightness.
+`kb.leds.setBrightness(level);`
 
-// Reset the LED state in the keyboard
-leds.reset();
+## Reset the LED state in the keyboard
+`leds.reset();`
 
-// Disconnect from the keyboard (automatically calls leds.reset())
-kb.disconnect();
+## Disconnect from the keyboard (automatically calls leds.reset())
+`kb.disconnect();`
 
 
-Other functions of interest:
+# Other functions of interest:
 
-Informational:
+## Informational:
+```
 kb.getSerialNumber(): Reads the full serial number info into kb.sn as an object. The string version prints the same format as the Wootility displays.
 leds.getCurrentProfile(): Returns the index of the currently in-use profile. Ranges 0 to 3
 leds.loadCurrentProfile(set = true): Reads the currently in-use profile and saves it as leds.profile. If set is true, it copies the profile color map into the internal buffers
 leds.loadProfile(n = 0, set = true): Returns a specific profile.
+```
 
-Direct mode:
+## Direct mode:
+```
 leds.directSetLoc(row, col, r, g, b)
 leds.directSetKey(keyCode, r, g, b)
 leds.directResetLoc(row, col)
 leds.directResetKey(keyCode)
+```
 
-Array mode:
+## Array mode:
+```
 leds.arrayUpdateKeyboard(): Pushes the internal Array buffer to the keyboard
 These 6 update the internal buffers but do not push to the keyboard
 leds.arrayChangeLoc(row, col, r, g, b)
@@ -91,8 +94,10 @@ leds.arrayResetLoc(row, col)
 leds.arrayResetKey(keyCode)
 leds.arraySetColormap(map)
 leds.arraySetColormapArray(arr)
+```
 
-Profile mode:
+## Profile mode:
+```
 leds.profileUpdateKeyboard(): Pushes the internal Profile buffer to the keyboard. This is a different one than what is stored in leds.profile
 The following are identical in behavor to their Array mode counterparts
 leds.profileChangeLoc(row, col, r, g, b)
@@ -105,3 +110,4 @@ leds.profileSetKey(keyCode, r, g, b)
 leds.profileResetLoc(row, col)
 leds.profileResetKey(keyCode)
 leds.profileSetColormap(map)
+```

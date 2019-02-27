@@ -138,6 +138,8 @@ class Keyboard {
       fnKey: { analog: buffer[3], led: LKeys[getName(buffer[3])] },
       modeKey: { analog: buffer[4], led: LKeys[getName(buffer[4])] },
       layout: buffer[5],
+      isANSI: buffer[5] == 0,
+      isISO: buffer[5] == 1,
       fnLockedDefault: buffer[6] > 0
     };
   }

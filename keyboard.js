@@ -2,8 +2,8 @@ const HID = require('node-hid'),
       { AnalogController, Keys: AKeys } = require('./analogcontroller.js'),
       { LedController, Keys: LKeys } = require('./ledcontroller.js');
 const USB = {
-  ReportSize: 129,
-  CommandSize: 8,
+  CommandSize: 129,
+  ReportSize: 8,
   VID: 0x03eb,
   ONE_PID: 0xff01,
   TWO_PID: 0xff02,
@@ -38,29 +38,29 @@ class Keyboard {
   connected() { return this.analoghdl && this.ledhdl; }
 
   sendBuffer(inbuf) {
-    let { ReportSize } = USB;
+    let { CommandSize } = USB;
     if (!this.connected()) { return false; }
-    let buf = new Array(ReportSize);
+    let buf = new Array(CommandSize);
     buf.fill(0);
     buf[0] = 0;
     buf[1] = 0xd0;
     buf[2] = 0xda;
     for (let i = 0, l = inbuf.length; i < l; i++) {
-      if (i+3 >= ReportSize - 2) { return false; }
+      if (i+3 >= CommandSize - 2) { return false; }
       buf[i+3] = inbuf[i];
     }
-    let crc = Keyboard.getCrc16ccitt(buf, ReportSize - 2);
+    let crc = Keyboard.getCrc16ccitt(buf, CommandSize - 2);
     buf[127] = crc&0xff;
     buf[128] = crc >> 8;
     try {
-      if (this.ledhdl.write(buf) == ReportSize) { return true; }
+      if (this.ledhdl.write(buf) == CommandSize) { return true; }
       else { this.disconnect(); return false; }
     } catch (e) { this.disconnect(); throw e; }
   }
   sendFeature(cmd, param0 = 0, param1 = 0, param2 = 0, param3 = 0) {
-    let { CommandSize } = USB;
+    let { ReportSize } = USB;
     if (!this.connected()) { return undefined; }
-    let buf = new Array(CommandSize);
+    let buf = new Array(ReportSize);
     buf[0] = 0;
     buf[1] = 0xd0;
     buf[2] = 0xda;
@@ -70,7 +70,7 @@ class Keyboard {
     buf[6] = param2;
     buf[7] = param3;
     try {
-      if (this.ledhdl.sendFeatureReport(buf) == CommandSize) {
+      if (this.ledhdl.sendFeatureReport(buf) == ReportSize) {
         let buffer = this.ledhdl.readTimeout(20);
         if ((buffer.length < 128) ||
             (Keyboard.getCrc16ccitt(buffer, buffer.length - 2) != ((buffer[127] << 8) | buffer[126])) ||

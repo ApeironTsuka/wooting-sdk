@@ -88,7 +88,7 @@ class LedController {
     let { kb, hdl } = this;
     if (!kb) { return -1; }
     if (!kb.sendFeature(USB.GetCurrentRgbProfileIndex)) { return -1; }
-    return hdl.readSync()[5];
+    return hdl.readSync()[4];
   }
   loadCurrentProfile(set = true) {
     let ind = this.getCurrentProfile();

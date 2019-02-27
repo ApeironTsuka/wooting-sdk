@@ -10,7 +10,7 @@ const scanIndexArray = [
 ];
 
 const USB = {
-  // reports
+  // queries
   GetAnalogValues: 20
 };
 
@@ -102,7 +102,7 @@ class AnalogController {
   getFull() {
     let { kb } = this, out = [], buffer;
     if (!kb) { return false; }
-    if (!(buffer = kb.sendFeature(USB.GetAnalogValues))) { return undefined; }
+    if (!(buffer = kb.sendQuery(USB.GetAnalogValues))) { return undefined; }
     for (let i = 0, l = buffer.length; i < l; i++) { out[i] = 255-buffer[i]; }
     return out;
   }

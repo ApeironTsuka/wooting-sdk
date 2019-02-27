@@ -32,7 +32,7 @@ const RGB = {
 };
 
 const USB = {
-  // reports
+  // queries
   GetCurrentRgbProfileIndex: 5,
   GetRgbMainProfile: 6,
   GetRgbColorsPart1: 26,
@@ -86,7 +86,7 @@ class LedController {
   getCurrentProfile() {
     let { kb } = this, buffer;
     if (!kb) { return -1; }
-    if (!(buffer = kb.sendFeature(USB.GetCurrentRgbProfileIndex))) { return -1; }
+    if (!(buffer = kb.sendQuery(USB.GetCurrentRgbProfileIndex))) { return -1; }
     return buffer[0];
   }
   loadCurrentProfile(set = true) {
@@ -99,13 +99,13 @@ class LedController {
     let { kb } = this;
     let main, color1, color2, effects, buffer;
     if ((n < 0) || (n > 3)) { return false; }
-    if (!(buffer = kb.sendFeature(USB.GetRgbMainProfile, n))) { return false; }
+    if (!(buffer = kb.sendQuery(USB.GetRgbMainProfile, n))) { return false; }
     main = buffer.slice(0, 6);
-    if (!(buffer = kb.sendFeature(USB.GetRgbColorsPart1, n))) { return false; }
+    if (!(buffer = kb.sendQuery(USB.GetRgbColorsPart1, n))) { return false; }
     color1 = buffer.slice(0, kb.isTwo ? 118 : 96);
-    if (!(buffer = kb.sendFeature(USB.GetRgbColorsPart2, n))) { return false; }
+    if (!(buffer = kb.sendQuery(USB.GetRgbColorsPart2, n))) { return false; }
     color2 = buffer.slice(0, kb.isTwo ? 118 : 96);
-    if (!(buffer = kb.sendFeature(USB.GetRgbEffects, n))) { return false; }
+    if (!(buffer = kb.sendQuery(USB.GetRgbEffects, n))) { return false; }
     effects = buffer.slice(0, 5);
     let unpackRgb = (a) => { let p = (a[1] << 8) | a[0]; return [(p & 0xf800) >> 8,(p & 0x7e0) >> 3,(p & 0x1f) << 3]; };
     let unpackMap = () => {
@@ -140,8 +140,8 @@ class LedController {
     let { profile } = this;
     let packRgb = (rgb) => { let x = ((0xf8 & rgb[0]) << 8) | ((0xfc & rgb[1]) << 3) | ((0xf8 & rgb[2]) >> 3); return [ x & 0xff, (x & 0xff00) >> 8 ]; };
     let buf = [ USB.RgbMainPart, profile.effects.mode, n, ...packRgb(profile.capsColor), ...packRgb(profile.fnLockColor) ];
-    if (!kb.sendBuffer(buf)) { return false; }
-    if (!kb.sendFeature(USB.RefreshRgbColors)) { return false; }
+    if (!kb.sendCommand(buf)) { return false; }
+    if (!kb.sendQuery(USB.RefreshRgbColors)) { return false; }
     return true;
   }
 
@@ -150,7 +150,7 @@ class LedController {
     if (!kb) { return false; }
     if (ks == this.sdkEnabled) { return true; }
     if (ks) {
-      if (!kb.sendFeature(USB.SdkInit)) { return false; }
+      if (!kb.sendQuery(USB.SdkInit)) { return false; }
       this.sdkEnabled = true;
       kb.ledhdl.readTimeout(50);
       return true;
@@ -159,7 +159,7 @@ class LedController {
   reset() {
     let { kb } = this;
     if (!kb) { return false; }
-    if (!kb.sendFeature(USB.SdkResetAll)) { return false; }
+    if (!kb.sendQuery(USB.SdkResetAll)) { return false; }
     else { this.sdkEnabled = false; return true; }
   }
   getSafeLedIndex(row, col) {
@@ -251,16 +251,16 @@ class LedController {
     else if (keyCode >= 117) { return false; }
     else if ((!kb.isTwo) && (keyCode >= 96)) { return false; }
     else if (keyCode == RGB.LeftShiftANSI) {
-      let ansi = kb.sendFeature(USB.SdkSingleColor, b, g, r, RGB.LeftShiftANSI) !== undefined,
-          iso = kb.sendFeature(USB.SdkSingleColor, b, g, r, RGB.LeftShiftISO) !== undefined;
+      let ansi = kb.sendQuery(USB.SdkSingleColor, b, g, r, RGB.LeftShiftANSI) !== undefined,
+          iso = kb.sendQuery(USB.SdkSingleColor, b, g, r, RGB.LeftShiftISO) !== undefined;
       return ansi && iso;
     }
     else if (keyCode == RGB.EnterANSI) {
-      let ansi = kb.sendFeature(USB.SdkSingleColor, b, g, r, RGB.EnterANSI) !== undefined,
-          iso = kb.sendFeature(USB.SdkSingleColor, b, g, r, RGB.EnterISO) !== undefined;
+      let ansi = kb.sendQuery(USB.SdkSingleColor, b, g, r, RGB.EnterANSI) !== undefined,
+          iso = kb.sendQuery(USB.SdkSingleColor, b, g, r, RGB.EnterISO) !== undefined;
       return ansi && iso;
     }
-    return kb.sendFeature(USB.SdkSingleColor, b, g, r, keyCode) !== undefined;
+    return kb.sendQuery(USB.SdkSingleColor, b, g, r, keyCode) !== undefined;
   }
   directResetLoc(row, col) { return this.directResetKey(this.getSafeLedIndex(row, col)); }
   directResetKey(keyCode) {
@@ -271,20 +271,20 @@ class LedController {
     else if (keyCode >= 117) { return false; }
     else if ((!kb.isTwo) && (keyCode >= 96)) { return false; }
     else if (keyCode == RGB.LeftShiftANSI) {
-      let ansi = kb.sendFeature(USB.SdkResetSingle, RGB.LeftShiftANSI) !== undefined,
-          iso = kb.sendFeature(USB.SdkResetSingle, RGB.LeftShiftISO) !== undefined;
+      let ansi = kb.sendQuery(USB.SdkResetSingle, RGB.LeftShiftANSI) !== undefined,
+          iso = kb.sendQuery(USB.SdkResetSingle, RGB.LeftShiftISO) !== undefined;
       return ansi && iso;
     }
     else if (keyCode == RGB.EnterANSI) {
-      let ansi = kb.sendFeature(USB.SdkResetSingle, RGB.EnterANSI) !== undefined,
-          iso = kb.sendFeature(USB.SdkResetSingle, RGB.EnterISO) !== undefined;
+      let ansi = kb.sendQuery(USB.SdkResetSingle, RGB.EnterANSI) !== undefined,
+          iso = kb.sendQuery(USB.SdkResetSingle, RGB.EnterISO) !== undefined;
       return ansi && iso;
     }
-    return kb.sendFeature(USB.SdkResetColor, keyCode) !== undefined;
+    return kb.sendQuery(USB.SdkResetColor, keyCode) !== undefined;
   }
 
   // array
-  sendSdkBuffer(part, rgb) {
+  sendSdkCommand(part, rgb) {
     let { kb } = this, { RawBufferSize, Part0, Part1, Part2, Part3, Part4 } = RGB;
     if (!kb) { return false; }
     if (!this.sdkEnabled) { return false; }
@@ -299,7 +299,7 @@ class LedController {
       case Part4: buf[1] = 2; buf[2] = 0; break;
     }
     for (let i = 0, l = RawBufferSize; i < l; i++) { buf[i + 3] = rgb[i] || 0; }
-    return kb.sendBuffer(buf);
+    return kb.sendCommand(buf);
   }
   arrayUpdateKeyboard() {
     let { kb, sdkMap } = this, bufIndex;
@@ -308,7 +308,7 @@ class LedController {
     if (!this.sdkEnabled) { return false; }
     for (let i = 0, l = kb.isTwo ? 5 : 4; i < l; i++) {
       if (sdkMap[i].changed) {
-        if (!this.sendSdkBuffer(Parts[i], sdkMap[i])) { return false; }
+        if (!this.sendSdkCommand(Parts[i], sdkMap[i])) { return false; }
         sdkMap[i].changed = false;
       }
     }
@@ -434,9 +434,9 @@ class LedController {
     let pm = packMap(profileMap),
         p1 = [ USB.RgbColorsPart, 0, (size / 2) - 1, ...pm.slice(0, size) ],
         p2 = [ USB.RgbColorsPart, size / 2, size - 1, ...pm.slice(size) ];
-    if (!kb.sendBuffer(p1)) { return false; }
-    if (!kb.sendBuffer(p2)) { return false; }
-    if (!kb.sendFeature(USB.RefreshRgbColors)) { return false; }
+    if (!kb.sendCommand(p1)) { return false; }
+    if (!kb.sendCommand(p2)) { return false; }
+    if (!kb.sendQuery(USB.RefreshRgbColors)) { return false; }
     return true;
   }
   profileChangeKey(keyCode, r, g, b) {

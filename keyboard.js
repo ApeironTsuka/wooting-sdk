@@ -7,7 +7,7 @@ const USB = {
   VID: 0x03eb,
   ONE_PID: 0xff01,
   TWO_PID: 0xff02,
-  // reports
+  // queries
   GetVersion: 1,
   GetSerial: 3,
   // response codes
@@ -37,7 +37,7 @@ class Keyboard {
   }
   connected() { return this.analoghdl && this.ledhdl; }
 
-  sendBuffer(inbuf) {
+  sendCommand(inbuf) {
     let { CommandSize } = USB;
     if (!this.connected()) { return false; }
     let buf = new Array(CommandSize);
@@ -57,7 +57,7 @@ class Keyboard {
       else { this.disconnect(); return false; }
     } catch (e) { this.disconnect(); throw e; }
   }
-  sendFeature(cmd, param0 = 0, param1 = 0, param2 = 0, param3 = 0) {
+  sendQuery(cmd, param0 = 0, param1 = 0, param2 = 0, param3 = 0) {
     let { ReportSize } = USB;
     if (!this.connected()) { return undefined; }
     let buf = new Array(ReportSize);
@@ -86,7 +86,7 @@ class Keyboard {
     if (!this.connected()) { return undefined; }
     if (this.version) { return this.version; }
     let buffer;
-    if (!(buffer = this.sendFeature(USB.GetVersion))) { return undefined; }
+    if (!(buffer = this.sendQuery(USB.GetVersion))) { return undefined; }
     let data = buffer.slice(0, 3);
     this.version = {
       set(d) { this.major = d[0]; this.minor = d[1]; this.patch = d[2]; return this; },
@@ -98,7 +98,7 @@ class Keyboard {
     if (!this.connected()) { return undefined; }
     if (this.sn) { return this.sn; }
     let buffer;
-    if (!(buffer = this.sendFeature(USB.GetSerial))) { return undefined; }
+    if (!(buffer = this.sendQuery(USB.GetSerial))) { return undefined; }
     let data = buffer.slice(0, 10);
     this.sn = {
       set(d) {

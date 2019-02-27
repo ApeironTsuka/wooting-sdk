@@ -33,7 +33,7 @@ class AnalogController {
     if (!b.connected()) { throw new Error(`Keyboard isn't connected`); }
     this._kb = b;
     this.hdl = b.analoghdl;
-    this.allKeys = new Array(b.isTwo ? 117 : 96);
+    this.allKeys = new Array(b.deviceConfig.isTwo ? 117 : 96);
     this.allKeys.fill(0);
   }
   get kb() { return this._kb; }
@@ -66,16 +66,16 @@ class AnalogController {
     let { kb } = this;
     if (!kb) { return 0; }
     else if (row >= Analog.Rows) { return 0; }
-    else if ((!kb.isTwo) && (col >= Analog.ColsOne)) { return 0; }
-    else if ((kb.isTwo) && (col >= Analog.ColsTwo)) { return 0; }
+    else if ((!kb.deviceConfig.isTwo) && (col >= Analog.ColsOne)) { return 0; }
+    else if ((kb.deviceConfig.isTwo) && (col >= Analog.ColsTwo)) { return 0; }
     return this.readKey(scanIndexArray[row][col]);
   }
   readKey(keyCode) {
     let { kb, buffer } = this, { BufferSize } = Analog;
     if (!kb) { return 0; }
     else if (keyCode == Keys.None) { return 0; }
-    else if ((kb.isTwo) && (keyCode > 117)) { return 0; }
-    else if ((!kb.isTwo) && (keyCode > 96)) { return 0; }
+    else if ((kb.deviceConfig.isTwo) && (keyCode > 117)) { return 0; }
+    else if ((!kb.deviceConfig.isTwo) && (keyCode > 96)) { return 0; }
     if (!this.refreshBuffer()) { return 0; }
     if (this.autoUpd) { return this.allKeys[keyCode]; }
     for (let i = 1; (i < BufferSize) && (buffer[i] > 0); i += 2) {

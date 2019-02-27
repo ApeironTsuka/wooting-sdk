@@ -72,7 +72,7 @@ class LedController {
   set kb(b) {
     if (!b.connected()) { throw new Error(`Keyboard isn't connected`); }
     this._kb = b;
-    this.profileMap = new Array((b.isTwo ? 118 : 96) * 3);
+    this.profileMap = new Array((b.deviceConfig.isTwo ? 118 : 96) * 3);
     let map = this.sdkMap;
     for (let i = 0; i < 5; i++) {
       map[i].fill(0);
@@ -102,9 +102,9 @@ class LedController {
     if (!(buffer = kb.sendQuery(USB.GetRgbMainProfile, n))) { return false; }
     main = buffer.slice(0, 6);
     if (!(buffer = kb.sendQuery(USB.GetRgbColorsPart1, n))) { return false; }
-    color1 = buffer.slice(0, kb.isTwo ? 118 : 96);
+    color1 = buffer.slice(0, kb.deviceConfig.isTwo ? 118 : 96);
     if (!(buffer = kb.sendQuery(USB.GetRgbColorsPart2, n))) { return false; }
-    color2 = buffer.slice(0, kb.isTwo ? 118 : 96);
+    color2 = buffer.slice(0, kb.deviceConfig.isTwo ? 118 : 96);
     if (!(buffer = kb.sendQuery(USB.GetRgbEffects, n))) { return false; }
     effects = buffer.slice(0, 5);
     let unpackRgb = (a) => { let p = (a[1] << 8) | a[0]; return [(p & 0xf800) >> 8,(p & 0x7e0) >> 3,(p & 0x1f) << 3]; };
@@ -166,8 +166,8 @@ class LedController {
     let { kb } = this, { None } = Keys;
     if (!kb) { return None; }
     if (row >= RGB.Rows) { return None; }
-    else if ((!kb.isTwo) && (col >= RGB.ColsOne)) { return false; }
-    else if ((kb.isTwo) && (col >= RGB.ColsTwo)) { return false; }
+    else if ((!kb.deviceConfig.isTwo) && (col >= RGB.ColsOne)) { return false; }
+    else if ((kb.deviceConfig.isTwo) && (col >= RGB.ColsTwo)) { return false; }
     return rgbLedIndex[row][col];
   }
 
@@ -249,7 +249,7 @@ class LedController {
     else if (!this.sdkEnabled) { return false; }
     else if (keyCode == Keys.None) { return false; }
     else if (keyCode >= 117) { return false; }
-    else if ((!kb.isTwo) && (keyCode >= 96)) { return false; }
+    else if ((!kb.deviceConfig.isTwo) && (keyCode >= 96)) { return false; }
     else if (keyCode == RGB.LeftShiftANSI) {
       let ansi = kb.sendQuery(USB.SdkSingleColor, b, g, r, RGB.LeftShiftANSI) !== undefined,
           iso = kb.sendQuery(USB.SdkSingleColor, b, g, r, RGB.LeftShiftISO) !== undefined;
@@ -269,7 +269,7 @@ class LedController {
     else if (!this.sdkEnabled) { return false; }
     else if (keyCode == Keys.None) { return false; }
     else if (keyCode >= 117) { return false; }
-    else if ((!kb.isTwo) && (keyCode >= 96)) { return false; }
+    else if ((!kb.deviceConfig.isTwo) && (keyCode >= 96)) { return false; }
     else if (keyCode == RGB.LeftShiftANSI) {
       let ansi = kb.sendQuery(USB.SdkResetSingle, RGB.LeftShiftANSI) !== undefined,
           iso = kb.sendQuery(USB.SdkResetSingle, RGB.LeftShiftISO) !== undefined;
@@ -288,7 +288,7 @@ class LedController {
     let { kb } = this, { RawBufferSize, Part0, Part1, Part2, Part3, Part4 } = RGB;
     if (!kb) { return false; }
     if (!this.sdkEnabled) { return false; }
-    if ((part == Part4) && (!kb.isTwo)) { return false; }
+    if ((part == Part4) && (!kb.deviceConfig.isTwo)) { return false; }
     let buf = new Array(RawBufferSize+3);
     buf[0] = USB.SdkColorsReport;
     switch (part) {
@@ -306,7 +306,7 @@ class LedController {
     let Parts = [ RGB.Part0, RGB.Part1, RGB.Part2, RGB.Part3, RGB.Part4 ];
     if (!kb) { return false; }
     if (!this.sdkEnabled) { return false; }
-    for (let i = 0, l = kb.isTwo ? 5 : 4; i < l; i++) {
+    for (let i = 0, l = kb.deviceConfig.isTwo ? 5 : 4; i < l; i++) {
       if (sdkMap[i].changed) {
         if (!this.sendSdkCommand(Parts[i], sdkMap[i])) { return false; }
         sdkMap[i].changed = false;
@@ -320,7 +320,7 @@ class LedController {
     if (!kb) { return false; }
     else if (!this.sdkEnabled) { return false; }
     else if (keyCode >= 117) { return false; }
-    else if ((!kb.isTwo) && (keyCode >= 96)) { return false; }
+    else if ((!kb.deviceConfig.isTwo) && (keyCode >= 96)) { return false; }
     if (keyCode >= 96) { buf = sdkMap[4]; }
     else if (keyCode >= 72) { buf = sdkMap[3]; }
     else if (keyCode >= 48) { buf = sdkMap[2]; }
@@ -357,7 +357,7 @@ class LedController {
     let { kb } = this;
     if (!kb) { return false; }
     if (!this.sdkEnabled) { return false; }
-    for (let i = 0, l = kb.isTwo ? 117 : 96; i < l; i++) {
+    for (let i = 0, l = kb.deviceConfig.isTwo ? 117 : 96; i < l; i++) {
       if (!this.arrayChangeKey(i, map[i * 3], map[i * 3 + 1], map[i * 3 + 2])) { return false; }
     }
     return true;
@@ -368,7 +368,7 @@ class LedController {
     if (!this.sdkEnabled) { return false; }
     let index = 0;
     for (let row = 0, rl = RGB.Rows; row < cl; row++) {
-      for (let col = 0, cl = kb.isTwo ? RGB.RowsTwo : RGB.RowsOne; col < cl; col++) {
+      for (let col = 0, cl = kb.deviceConfig.isTwo ? RGB.RowsTwo : RGB.RowsOne; col < cl; col++) {
         let r = map[index],
             g = map[index + 1],
             b = map[index + 2];
@@ -423,7 +423,7 @@ class LedController {
       }
     };
     if (!classifyEffects(this.profile.effects)) { return false; }
-    let size = kb.isTwo ? 118 : 96;
+    let size = kb.deviceConfig.isTwo ? 118 : 96;
     if (profileMap.length < size * 3) { return false; }
     let packRgb = (rgb) => { let x = ((0xf8 & rgb[0]) << 8) | ((0xfc & rgb[1]) << 3) | ((0xf8 & rgb[2]) >> 3); return [ x & 0xff, (x & 0xff00) >> 8 ]; };
     let packMap = (map) => {

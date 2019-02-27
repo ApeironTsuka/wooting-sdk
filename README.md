@@ -16,8 +16,8 @@ let kb = Keyboard.get();
 # Analog
 
 ## Read the analog value of the G key
-`kb.analog.readKey(Keyboard.Analog.G);`  
-Other keys can be found in analog.js
+`kb.analog.readKey(Keyboard.Analog.G);`
+Other keys can be found in analog.js (note that this mapping assumes QWERTY layout)
 
 ## Read the analog value of a row/column
 `kb.analog.readLoc(row, column);`
@@ -32,6 +32,7 @@ Other keys can be found in analog.js
 
 ## Set the L key to white
 `kb.leds.setKey(Keyboard.LEDs.L, 255, 255, 255);`
+Other keys can be found in leds.js (note that this mapping assumes QWERTY layout)
 
 ## Update the keyboard LED state
 `kb.leds.updateKeyboard();`
@@ -64,8 +65,9 @@ Note that it only works if mode is Profile or before leds.init() is called or af
 ## Informational:
 ```
 kb.getSerialNumber(): Reads the full serial number info into kb.sn as an object. The string version prints the same format as the Wootility displays.
-leds.getCurrentProfile(): Returns the index of the currently in-use profile. Ranges 0 to 3
-leds.loadCurrentProfile(set = true): Reads the currently in-use profile and saves it as leds.profile. If set is true, it copies the profile color map into the internal buffers
+kb.getDeviceConfig(): Reads the device configuration (default profiles, tachyon mode, layout, etc). Saves as kb.deviceConfig. For fnKey and modeKey, they'll be in the format { analog: code, led: code }.
+leds.getCurrentProfile(): Returns the index of the currently in-use profile. Ranges 0 to 3.
+leds.loadCurrentProfile(set = true): Reads the currently in-use profile and saves it as leds.profile. If set is true, it copies the profile color map into the internal buffers.
 leds.loadProfile(n = 0, set = true): Returns a specific profile.
 ```
 
@@ -79,15 +81,15 @@ leds.directResetKey(keyCode)
 
 ## Array mode:
 ```
-leds.arrayUpdateKeyboard(): Pushes the internal Array buffer to the keyboard
-These 6 update the internal buffers but do not push to the keyboard
+leds.arrayUpdateKeyboard(): Pushes the internal Array buffer to the keyboard.
+These 6 update the internal buffers but do not push to the keyboard.
 leds.arrayChangeLoc(row, col, r, g, b)
 leds.arrayChangeKey(keyCode, r, g, b)
 leds.arrayChangeResetLoc(row, col)
-leds.arrayChangeResetKey(keyCode): These Reset functions use the color mapped to the key from leds.profile.map
+leds.arrayChangeResetKey(keyCode): These Reset functions use the color mapped to the key from leds.profile.map.
 leds.arrayChangeColormap(map): Copies map into the internal Array buffer. Map is an array of Key0R, Key0G, Key0B, Key1R, ...
-leds.arrayChangeColormapArray(arr): Copies arr into the internal Array buffer. Works the way wooting_rgb_array_set_full does
-These 6 call the 6 above, and auto-update the keyboard if enabled
+leds.arrayChangeColormapArray(arr): Copies arr into the internal Array buffer. Works the way wooting_rgb_array_set_full does.
+These 6 call the 6 above, and auto-update the keyboard if enabled.
 leds.arraySetLoc(row, col, r, g, b)
 leds.arraySetKey(keyCode, r, g, b)
 leds.arrayResetLoc(row, col)
@@ -98,8 +100,8 @@ leds.arraySetColormapArray(arr)
 
 ## Profile mode:
 ```
-leds.profileUpdateKeyboard(): Pushes the internal Profile buffer to the keyboard. This is a different one than what is stored in leds.profile
-The following are identical in behavor to their Array mode counterparts
+leds.profileUpdateKeyboard(): Pushes the internal Profile buffer to the keyboard. This is a different one than what is stored in leds.profile.
+The following are identical in behavor to their Array mode counterparts.
 leds.profileChangeLoc(row, col, r, g, b)
 leds.profileChangeKey(keyCode, r, g, b)
 leds.profileChangeResetLoc(row, loc)
@@ -111,3 +113,11 @@ leds.profileResetLoc(row, col)
 leds.profileResetKey(keyCode)
 leds.profileSetColormap(map)
 ```
+
+## Analog:
+```
+analog.autoUpd: Setting to true will start a 5ms loop auto-updating internal buffers. This changes the readKey, readLoc, and readFull behavior to only use the internal buffer rather than calling refreshBuffer(). Setting to false stops this loop.
+analog.readFull: Returns an object in the format { total: keysRead, keys: [ Key0Code, Key0Level, Key1Code, ... ] }.
+analog.getFull: Queries the keyboard for the analog state of (mostly) all keys. For the One, it returns the analog values for keys 0 through 86 (ANSI) or 87 (ISO). For the Two, it returns the values for keys 0 through 110. This does NOT update the internal buffers and is mostly useful for debugging.
+```
+

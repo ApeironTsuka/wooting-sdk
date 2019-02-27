@@ -10,6 +10,7 @@ const USB = {
   // queries
   GetVersion: 1,
   GetSerial: 3,
+  GetDeviceConfig: 19,
   // response codes
   Unknown: 102,
   Success: 136,
@@ -24,6 +25,7 @@ class Keyboard {
   }
   init() {
     if (!this.connected()) { return false; }
+    this.getDeviceConfig();
     this.leds = new LedController();
     this.leds.kb = this;
     this.analog = new AnalogController();
@@ -117,6 +119,27 @@ class Keyboard {
       }
     };
     return this.sn.set(data);
+  }
+  getDeviceConfig() {
+    if (!this.connected()) { return undefined; }
+    if (this.deviceConfig) { return this.deviceConfig; }
+    let buffer;
+    if (!(buffer = this.sendQuery(USB.GetDeviceConfig))) { return undefined; }
+    let getName = (k) => { for (let i = 0, keys = Object.keys(AKeys), l = keys.length; i < l; i++) { if (AKeys[keys[i]] == k) { return keys[i]; } } return undefined; };
+    return this.deviceConfig = {
+      isOne: !this.isTwo,
+      isTwo: this.isTwo,
+      defaultDigitalProfile: buffer[0] & 0x1,
+      xinputDisabled: (buffer[0] & 0x80) == 1,
+      tachyonEnabled: (buffer[0] & 0x40) == 1,
+      windowsKeyDisabled: (buffer[0] & 0x20) == 1,
+      defaultAnalogProfile: buffer[1],
+      defaultMode: buffer[2],
+      fnKey: { analog: buffer[3], led: LKeys[getName(buffer[3])] },
+      modeKey: { analog: buffer[4], led: LKeys[getName(buffer[4])] },
+      layout: buffer[5],
+      fnLockedDefault: buffer[6] > 0
+    };
   }
 
   static getCrc16ccitt(buf, size) {

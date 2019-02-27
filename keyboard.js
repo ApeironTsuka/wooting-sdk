@@ -7,7 +7,7 @@ const USB = {
   VID: 0x03eb,
   ONE_PID: 0xff01,
   TWO_PID: 0xff02,
-  // commands
+  // reports
   GetVersion: 1,
   GetSerial: 3
 };
@@ -31,7 +31,7 @@ class Keyboard {
     if (this.analoghdl) { this.analoghdl.close(); this.analoghdl = undefined; }
     if (this.ledhdl) { this.ledhdl.close(); this.ledhdl = undefined; }
   }
-  connected() { return this.analoghdl&&this.ledhdl; }
+  connected() { return this.analoghdl && this.ledhdl; }
 
   sendBuffer(inbuf) {
     let { ReportSize } = USB;
@@ -42,10 +42,10 @@ class Keyboard {
     buf[1] = 0xd0;
     buf[2] = 0xda;
     for (let i = 0, l = inbuf.length; i < l; i++) {
-      if (i+3 >= ReportSize-2) { return false; }
+      if (i+3 >= ReportSize - 2) { return false; }
       buf[i+3] = inbuf[i];
     }
-    let crc = Keyboard.getCrc16ccitt(buf, ReportSize-2);
+    let crc = Keyboard.getCrc16ccitt(buf, ReportSize - 2);
     buf[127] = crc&0xff;
     buf[128] = crc >> 8;
     try {
@@ -82,19 +82,19 @@ class Keyboard {
     };
     return this.version.set(data);
   }
-  getSerialNumber() {
+  getSerialNumber() { // FIXME: Currently broken; reports incorrect serial (which the Wootility does as well at the moment)
     if (!this.connected()) { return undefined; }
     if (this.sn) { return this.sn; }
     if (!this.sendFeature(USB.GetSerial)) { return undefined; }
     let data = this.ledhdl.readSync().slice(4, 14);
     this.sn = {
       set(d) {
-        this.supplierNumber = (d[1]<<8)|d[0];
+        this.supplierNumber = (d[1] << 8) | d[0];
         this.year = d[2];
         this.week = d[3];
-        this.productNumber = (d[5]<<8)|d[4];
-        this.revision = (d[7]<<8)|d[6];
-        this.productId = (d[9]<<8)|d[7];
+        this.productNumber = (d[5] << 8) | d[4];
+        this.revision = (d[7] << 8) | d[6];
+        this.productId = (d[9] << 8) | d[7];
         return this;
       },
       toString() {
@@ -115,7 +115,7 @@ class Keyboard {
         else { crc = crc << 1; }
       }
     }
-    return crc&0xffff;
+    return crc & 0xffff;
   }
   static get() {
     let { VID, ONE_PID, TWO_PID } = USB;

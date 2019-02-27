@@ -32,7 +32,7 @@ const RGB = {
 };
 
 const USB = {
-  // commands
+  // reports
   GetCurrentRgbProfileIndex: 5,
   GetRgbMainProfile: 6,
   GetRgbColorsPart1: 26,
@@ -43,7 +43,7 @@ const USB = {
   SdkResetColor: 31,
   SdkResetAll: 32,
   SdkInit: 33,
-  // reports
+  // commands
   RgbMainPart: 0,
   RgbColorsPart: 9,
   SdkColorsReport: 11
@@ -73,7 +73,7 @@ class LedController {
     if (!b.connected()) { throw new Error(`Keyboard isn't connected`); }
     this._kb = b;
     this.hdl = b.ledhdl;
-    this.profileMap = new Array((b.isTwo?118:96)*3);
+    this.profileMap = new Array((b.isTwo ? 118 : 96) * 3);
     let map = this.sdkMap;
     for (let i = 0; i < 5; i++) {
       map[i].fill(0);
@@ -103,15 +103,15 @@ class LedController {
     if (!kb.sendFeature(USB.GetRgbMainProfile, n)) { return false; }
     main = hdl.readSync().slice(4, 10);
     if (!kb.sendFeature(USB.GetRgbColorsPart1, n)) { return false; }
-    color1 = hdl.readSync().slice(4, kb.isTwo?122:100);
+    color1 = hdl.readSync().slice(4, kb.isTwo ? 122 : 100);
     if (!kb.sendFeature(USB.GetRgbColorsPart2, n)) { return false; }
-    color2 = hdl.readSync().slice(4, kb.isTwo?122:100);
+    color2 = hdl.readSync().slice(4, kb.isTwo ? 122 : 100);
     if (!kb.sendFeature(USB.GetRgbEffects, n)) { return false; }
     effects = hdl.readSync().slice(4, 9);
-    let unpackRgb = (a) => { let p = (a[1]<<8)|a[0]; return [(p&0xf800)>>8,(p&0x7e0)>>3,(p&0x1f)<<3]; };
+    let unpackRgb = (a) => { let p = (a[1] << 8) | a[0]; return [(p & 0xf800) >> 8,(p & 0x7e0) >> 3,(p & 0x1f) << 3]; };
     let unpackMap = () => {
       let a = [...color1, ...color2], out = [];
-      for (let i = 0, l = a.length; i < l; i+=2) { out.push(...unpackRgb([a[i], a[i+1]])); }
+      for (let i = 0, l = a.length; i < l; i += 2) { out.push(...unpackRgb([a[i], a[i + 1]])); }
       return out;
     };
     let profile = {
@@ -139,7 +139,7 @@ class LedController {
     if (!this.profile) { if (!this.loadCurrentProfile(false)) { return false; } }
     if (this.sdkEnabled) { return false; }
     let { profile } = this;
-    let packRgb = (rgb) => { let x = ((0xf8&rgb[0])<<8)|((0xfc&rgb[1])<<3)|((0xf8&rgb[2])>>3); return [x&0xff, (x&0xff00)>>8 ]; };
+    let packRgb = (rgb) => { let x = ((0xf8 & rgb[0]) << 8) | ((0xfc & rgb[1]) << 3) | ((0xf8 & rgb[2]) >> 3); return [ x & 0xff, (x & 0xff00) >> 8 ]; };
     let buf = [ USB.RgbMainPart, profile.effects.mode, n, ...packRgb(profile.capsColor), ...packRgb(profile.fnLockColor) ];
     if (!kb.sendBuffer(buf)) { return false; }
     if (!kb.sendFeature(USB.RefreshRgbColors)) { return false; }
@@ -245,7 +245,7 @@ class LedController {
 
 
   // direct
-  directSetLoc(row, col, r, g, b) { return this.directSetKey(b, g, r, this.getSafeLedIndex(row, col)); }
+  directSetLoc(row, col, r, g, b) { return this.directSetKey(this.getSafeLedIndex(row, col), r, g, b); }
   directSetKey(keyCode, r, g, b) {
     let { kb, hdl } = this;
     if (!kb) { return false; }
@@ -256,12 +256,12 @@ class LedController {
     else if (keyCode == RGB.LeftShiftANSI) {
       let ansi = kb.sendFeature(USB.SdkSingleColor, b, g, r, RGB.LeftShiftANSI),
           iso = kb.sendFeature(USB.SdkSingleColor, b, g, r, RGB.LeftShiftISO);
-      return ansi&&iso;
+      return ansi && iso;
     }
     else if (keyCode == RGB.EnterANSI) {
       let ansi = kb.sendFeature(USB.SdkSingleColor, b, g, r, RGB.EnterANSI),
           iso = kb.sendFeature(USB.SdkSingleColor, b, g, r, RGB.EnterISO);
-      return ansi&&iso;
+      return ansi && iso;
     }
     return kb.sendFeature(USB.SdkSingleColor, b, g, r, keyCode);
   }
@@ -276,12 +276,12 @@ class LedController {
     else if (keyCode == RGB.LeftShiftANSI) {
       let ansi = kb.sendFeature(USB.SdkResetSingle, RGB.LeftShiftANSI),
           iso = kb.sendFeature(USB.SdkResetSingle, RGB.LeftShiftISO);
-      return ansi&&iso;
+      return ansi && iso;
     }
     else if (keyCode == RGB.EnterANSI) {
       let ansi = kb.sendFeature(USB.SdkResetSingle, RGB.EnterANSI),
           iso = kb.sendFeature(USB.SdkResetSingle, RGB.EnterISO);
-      return ansi&&iso;
+      return ansi && iso;
     }
     return kb.sendFeature(USB.SdkResetColor, keyCode);
   }
@@ -301,7 +301,7 @@ class LedController {
       case Part3: buf[1] = 1; buf[2] = RawBufferSize; break;
       case Part4: buf[1] = 2; buf[2] = 0; break;
     }
-    for (let i = 0, l = RawBufferSize; i < l; i++) { buf[i+3] = rgb[i]||0; }
+    for (let i = 0, l = RawBufferSize; i < l; i++) { buf[i + 3] = rgb[i] || 0; }
     return kb.sendBuffer(buf);
   }
   arrayUpdateKeyboard() {
@@ -309,7 +309,7 @@ class LedController {
     let Parts = [ RGB.Part0, RGB.Part1, RGB.Part2, RGB.Part3, RGB.Part4 ];
     if (!kb) { return false; }
     if (!this.sdkEnabled) { return false; }
-    for (let i = 0, l = kb.isTwo?5:4; i < l; i++) {
+    for (let i = 0, l = kb.isTwo ? 5 : 4; i < l; i++) {
       if (sdkMap[i].changed) {
         if (!this.sendSdkBuffer(Parts[i], sdkMap[i])) { return false; }
         sdkMap[i].changed = false;
@@ -329,24 +329,24 @@ class LedController {
     else if (keyCode >= 48) { buf = sdkMap[2]; }
     else if (keyCode >= 24) { buf = sdkMap[1]; }
     else { buf = sdkMap[0]; }
-    bufIndex = pwm[keyCode%24];
-    let cr = buf[bufIndex], cg = buf[bufIndex+0x10], cb = buf[bufIndex+0x20];
+    bufIndex = pwm[keyCode % 24];
+    let cr = buf[bufIndex], cg = buf[bufIndex + 0x10], cb = buf[bufIndex + 0x20];
     if ((r == cr) && (g == cg) && (b == cb)) { return true; }
     buf.changed = true;
     buf[bufIndex] = r;
-    buf[bufIndex+0x10] = g;
-    buf[bufIndex+0x20] = b;
+    buf[bufIndex + 0x10] = g;
+    buf[bufIndex + 0x20] = b;
     if (keyCode == RGB.LeftShiftANSI) {
       let ind = pwm[RGB.LeftShiftISO];
       buf[ind] = r;
-      buf[ind+0x10] = g;
-      buf[ind+0x20] = b;
+      buf[ind + 0x10] = g;
+      buf[ind + 0x20] = b;
     }
     else if (keyCode == RGB.EnterANSI) {
       let ind = pwm[RGB.EnterISO-48];
       buf[ind] = r;
-      buf[ind+0x10] = g;
-      buf[ind+0x20] = b;
+      buf[ind + 0x10] = g;
+      buf[ind + 0x20] = b;
     }
     return true;
   }
@@ -354,14 +354,14 @@ class LedController {
   arrayChangeResetKey(keyCode) {
     if (!this.profile) { if (!this.loadCurrentProfile(false)) { return false; } }
     let { map } = this.profile;
-    return this.arrayChangeKey(keyCode, map[keyCode*3], map[keyCode*3+1], map[keyCode*3+2]);
+    return this.arrayChangeKey(keyCode, map[keyCode * 3], map[keyCode * 3 + 1], map[keyCode * 3  + 2]);
   }
   arrayChangeColormap(map) {
     let { kb } = this;
     if (!kb) { return false; }
     if (!this.sdkEnabled) { return false; }
-    for (let i = 0, l = kb.isTwo?117:96; i < l; i++) {
-      if (!this.arrayChangeKey(i, map[i*3], map[i*3+1], map[i*3+2])) { return false; }
+    for (let i = 0, l = kb.isTwo ? 117 : 96; i < l; i++) {
+      if (!this.arrayChangeKey(i, map[i * 3], map[i * 3 + 1], map[i * 3 + 2])) { return false; }
     }
     return true;
   }
@@ -371,10 +371,10 @@ class LedController {
     if (!this.sdkEnabled) { return false; }
     let index = 0;
     for (let row = 0, rl = RGB.Rows; row < cl; row++) {
-      for (let col = 0, cl = kb.isTwo?RGB.RowsTwo:RGB.RowsOne; col < cl; col++) {
+      for (let col = 0, cl = kb.isTwo ? RGB.RowsTwo : RGB.RowsOne; col < cl; col++) {
         let r = map[index],
-            g = map[index+1],
-            b = map[index+2];
+            g = map[index + 1],
+            b = map[index + 2];
         if (!this.arrayChangeLoc(row, col, r, g, b)) { return false; }
         index += 3;
       }
@@ -426,17 +426,17 @@ class LedController {
       }
     };
     if (!classifyEffects(this.profile.effects)) { return false; }
-    let size = kb.isTwo?118:96;
-    if (profileMap.length < size*3) { return false; }
-    let packRgb = (rgb) => { let x = ((0xf8&rgb[0])<<8)|((0xfc&rgb[1])<<3)|((0xf8&rgb[2])>>3); return [x&0xff, (x&0xff00)>>8 ]; };
+    let size = kb.isTwo ? 118 : 96;
+    if (profileMap.length < size * 3) { return false; }
+    let packRgb = (rgb) => { let x = ((0xf8 & rgb[0]) << 8) | ((0xfc & rgb[1]) << 3) | ((0xf8 & rgb[2]) >> 3); return [ x & 0xff, (x & 0xff00) >> 8 ]; };
     let packMap = (map) => {
       let out = [];
-      for (let i = 0, l = map.length; i < l; i+=3) { out.push(...packRgb(map.slice(i, i+3))); }
+      for (let i = 0, l = map.length; i < l; i+=3) { out.push(...packRgb(map.slice(i, i + 3))); }
       return out;
     };
     let pm = packMap(profileMap),
-        p1 = [ USB.RgbColorsPart, 0, (size/2)-1, ...pm.slice(0,size) ],
-        p2 = [ USB.RgbColorsPart, size/2, size-1, ...pm.slice(size) ];
+        p1 = [ USB.RgbColorsPart, 0, (size / 2) - 1, ...pm.slice(0, size) ],
+        p2 = [ USB.RgbColorsPart, size / 2, size - 1, ...pm.slice(size) ];
     if (!kb.sendBuffer(p1)) { return false; }
     if (!kb.sendBuffer(p2)) { return false; }
     if (!kb.sendFeature(USB.RefreshRgbColors)) { return false; }
@@ -447,21 +447,21 @@ class LedController {
     let { kb, profileMap } = this;
     if (!kb) { return false; }
     if (this.sdkEnabled) { return false; }
-    profileMap[keyCode*3] = r;
-    profileMap[keyCode*3+1] = g;
-    profileMap[keyCode*3+2] = b;
+    profileMap[keyCode * 3] = r;
+    profileMap[keyCode * 3 + 1] = g;
+    profileMap[keyCode * 3 + 2] = b;
     return true;
   }
   profileChangeResetKey(keyCode) {
     if (!this.profile) { if (!this.loadCurrentProfile(false)) { return false; } }
     let { map } = this.profile;
-    return this.profileChangeKey(keyCode, map[keyCode*3], map[keyCode*3+1], map[keyCode*3+2]);
+    return this.profileChangeKey(keyCode, map[keyCode * 3], map[keyCode * 3 + 1], map[keyCode * 3 + 2]);
   }
   profileChangeColormap(map) {
     let { kb, profileMap } = this;
     if (!kb) { return false; }
     if (this.sdkEnabled) { return false; }
-    for (let i = 0, l = profileMap.length; i < l; i++) { profileMap[i] = map[i]||0; }
+    for (let i = 0, l = profileMap.length; i < l; i++) { profileMap[i] = map[i] || 0; }
     return true;
   }
   profileSetKey(keyCode, r, g, b) {

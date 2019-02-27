@@ -9,7 +9,11 @@ const USB = {
   TWO_PID: 0xff02,
   // reports
   GetVersion: 1,
-  GetSerial: 3
+  GetSerial: 3,
+  // response codes
+  Unknown: 102,
+  Success: 136,
+  Error: 255
 };
 class Keyboard {
   constructor() {
@@ -27,7 +31,7 @@ class Keyboard {
     return true;
   }
   disconnect() {
-    this.leds.reset();
+    if (this.leds) { this.leds.reset(); }
     if (this.analoghdl) { this.analoghdl.close(); this.analoghdl = undefined; }
     if (this.ledhdl) { this.ledhdl.close(); this.ledhdl = undefined; }
   }
@@ -55,7 +59,7 @@ class Keyboard {
   }
   sendFeature(cmd, param0 = 0, param1 = 0, param2 = 0, param3 = 0) {
     let { CommandSize } = USB;
-    if (!this.connected()) { return false; }
+    if (!this.connected()) { return undefined; }
     let buf = new Array(CommandSize);
     buf[0] = 0;
     buf[1] = 0xd0;
@@ -66,16 +70,24 @@ class Keyboard {
     buf[6] = param2;
     buf[7] = param3;
     try {
-      if (this.ledhdl.sendFeatureReport(buf) == CommandSize) { return true; }
-      else { this.disconnect(); return false; }
+      if (this.ledhdl.sendFeatureReport(buf) == CommandSize) {
+        let buffer = this.ledhdl.readTimeout(20);
+        if ((buffer.length < 128) ||
+            (Keyboard.getCrc16ccitt(buffer, buffer.length - 2) != ((buffer[127] << 8) | buffer[126])) ||
+            ((buffer[0] != 0xd0) || (buffer[1] != 0xda)) ||
+            (buffer[3] != USB.Success)) { return undefined; }
+        return buffer.slice(4, 126);
+      }
+      else { this.disconnect(); return undefined; }
     } catch (e) { this.disconnect(); throw e; }
   }
 
   getFirmwareVersion() {
     if (!this.connected()) { return undefined; }
     if (this.version) { return this.version; }
-    if (!this.sendFeature(USB.GetVersion)) { return undefined; }
-    let data = this.ledhdl.readSync().slice(4, 7);
+    let buffer;
+    if (!(buffer = this.sendFeature(USB.GetVersion))) { return undefined; }
+    let data = buffer.slice(0, 3);
     this.version = {
       set(d) { this.major = d[0]; this.minor = d[1]; this.patch = d[2]; return this; },
       toString() { return `${this.major}.${this.minor}.${this.patch}`; }
@@ -85,8 +97,9 @@ class Keyboard {
   getSerialNumber() { // FIXME: Currently broken; reports incorrect serial (which the Wootility does as well at the moment)
     if (!this.connected()) { return undefined; }
     if (this.sn) { return this.sn; }
-    if (!this.sendFeature(USB.GetSerial)) { return undefined; }
-    let data = this.ledhdl.readSync().slice(4, 14);
+    let buffer;
+    if (!(buffer = this.sendFeature(USB.GetSerial))) { return undefined; }
+    let data = buffer.slice(0, 10);
     this.sn = {
       set(d) {
         this.supplierNumber = (d[1] << 8) | d[0];

@@ -9,6 +9,11 @@ const scanIndexArray = [
   [ 80, 81, 82, Keys.None, Keys.None, Keys.None, 83, Keys.None, Keys.None, Keys.None, 84, 85, 86, 79, 76, 77, 78, Keys.None, 95, 94, Keys.None ]
 ];
 
+const USB = {
+  // reports
+  GetAnalogValues: 20
+};
+
 const Analog = {
   Rows: 6,
   ColsOne: 17,
@@ -93,6 +98,13 @@ class AnalogController {
       }
     }
     return { total: written, keys };
+  }
+  getFull() {
+    let { kb } = this, out = [], buffer;
+    if (!kb) { return false; }
+    if (!(buffer = kb.sendFeature(USB.GetAnalogValues))) { return undefined; }
+    for (let i = 0, l = buffer.length; i < l; i++) { out[i] = 255-buffer[i]; }
+    return out;
   }
 }
 

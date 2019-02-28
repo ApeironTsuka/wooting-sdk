@@ -439,6 +439,7 @@ class LedController {
     if (!kb.sendQuery(USB.RefreshRgbColors)) { return false; }
     return true;
   }
+  profileChangeLoc(row, col, r, g, b) { return this.profileChangeKey(this.getSafeLedIndex(row, col), r, g, b); }
   profileChangeKey(keyCode, r, g, b) {
     let { kb, profileMap } = this;
     if (!kb) { return false; }
@@ -448,6 +449,7 @@ class LedController {
     profileMap[keyCode * 3 + 2] = b;
     return true;
   }
+  profileChangeResetLoc(row, col) { return this.profileChangeResetKey(this.getSafeLedIndex(row, col)); }
   profileChangeResetKey(keyCode) {
     if (!this.profile) { if (!this.loadCurrentProfile(false)) { return false; } }
     let { map } = this.profile;
@@ -460,8 +462,18 @@ class LedController {
     for (let i = 0, l = profileMap.length; i < l; i++) { profileMap[i] = map[i] || 0; }
     return true;
   }
+  profileSetLoc(row, col, r, g, b) {
+    if (!this.profileChangeLoc(row, col, r, g, b)) { return false; }
+    if (this.autoUpd) { return this.profileUpdateKeyboard(); }
+    return true;
+  }
   profileSetKey(keyCode, r, g, b) {
     if (!this.profileChangeKey(keyCode, r, g, b)) { return false; }
+    if (this.autoUpd) { return this.profileUpdateKeyboard(); }
+    return true;
+  }
+  profileResetLoc(row, col) {
+    if (!this.profileChangeResetLoc(row, col)) { return false; }
     if (this.autoUpd) { return this.profileUpdateKeyboard(); }
     return true;
   }

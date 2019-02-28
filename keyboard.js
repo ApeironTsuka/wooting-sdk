@@ -96,7 +96,7 @@ class Keyboard {
     };
     return this.version.set(data);
   }
-  getSerialNumber() { // FIXME: Currently broken; reports incorrect serial (which the Wootility does as well at the moment)
+  getSerialNumber() {
     if (!this.connected()) { return undefined; }
     if (this.sn) { return this.sn; }
     let buffer;
@@ -109,13 +109,13 @@ class Keyboard {
         this.week = d[3];
         this.productNumber = (d[5] << 8) | d[4];
         this.revision = (d[7] << 8) | d[6];
-        this.productId = (d[9] << 8) | d[7];
+        this.productId = (d[9] << 8) | d[8];
         return this;
       },
       toString() {
         let pad = (v, k) => v.toString().padStart(k, '0');
-        let { year, week, productId, revision, productNumber } = this;
-        return `A01B${year}${pad(week, 2)}W${pad(productId, 2)}${revision}H${pad(productNumber, 5)}`;
+        let { year, week, productNumber, revision, productId } = this;
+        return `A01B${year}${pad(week, 2)}W${pad(productNumber, 2)}${revision}H${pad(productId, 5)}`;
       }
     };
     return this.sn.set(data);

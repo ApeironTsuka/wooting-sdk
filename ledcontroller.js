@@ -128,7 +128,7 @@ class LedController {
         special: effects[4]
       }
     };
-    if (set) { return this.setColormap(profile.map); }
+    if (set) { return this.setColormap(profile.map)?profile:false; }
     return profile;
   }
   setBrightness(n) {

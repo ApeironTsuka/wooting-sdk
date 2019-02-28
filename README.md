@@ -16,7 +16,7 @@ let kb = Keyboard.get();
 # Analog
 
 ## Read the analog value of the G key
-`kb.analog.readKey(Keyboard.Analog.G);`
+`kb.analog.readKey(Keyboard.Analog.G);`  
 Other keys can be found in analog.js (note that this mapping assumes QWERTY layout)
 
 ## Read the analog value of a row/column
@@ -31,13 +31,13 @@ Other keys can be found in analog.js (note that this mapping assumes QWERTY layo
 `kb.leds.init();`
 
 ## Set the L key to white
-`kb.leds.setKey(Keyboard.LEDs.L, 255, 255, 255);`
+`kb.leds.setKey(Keyboard.LEDs.L, 255, 255, 255);`  
 Other keys can be found in leds.js (note that this mapping assumes QWERTY layout)
 
 ## Update the keyboard LED state
-`kb.leds.updateKeyboard();`
+`kb.leds.updateKeyboard();`  
 
-Or optionally, enable auto-update so that setKey et al calls updateKeyboard for you
+Or optionally, enable auto-update so that setKey et al calls updateKeyboard for you  
 `kb.leds.autoUpd = true;`
 
 ## Set a row/column
@@ -50,7 +50,7 @@ Or optionally, enable auto-update so that setKey et al calls updateKeyboard for 
 `kb.leds.resetLoc(row, column);`
 
 ## Set the keyboard brightness. Ranges 0 to 255.  
-Note that it only works if mode is Profile or before leds.init() is called or after leds.reset() is called, as Direct/Array enable the SDK and this blocks the call that sets brightness.
+Note that it only works if mode is Profile or before leds.init() is called or after leds.reset() is called, as Direct/Array enable the SDK and this blocks the call that sets brightness.  
 `kb.leds.setBrightness(level);`
 
 ## Reset the LED state in the keyboard
@@ -124,22 +124,22 @@ analog.getFull: Queries the keyboard for the analog state of (mostly) all keys. 
 # Included examples
 
 ## examples/clock.js
-Uses rows 2 through 4 to display hour/minute/second.
-Pattern is left-to-right, with the following color meanings: blue is 10, green is 5, red is 1.
-So 37 is blue blue blue green red red.
+Uses rows 2 through 4 to display hour/minute/second.  
+Pattern is left-to-right, with the following color meanings: blue is 10, green is 5, red is 1.  
+So 37 is blue blue blue green red red.  
 
 ## examples/game.js
-Simple side shooter using rows 2 through 4.
-Controls are up/down arrow to move, right arrow to fire.
-Unit HP is denoted by color: blue is 3, green is 2, red is 1.
-Their shots are yellow, yours are cyan.
-Uses row 1 to display score using the same number pattern as the clock with the addition of yellow as 50.
+Simple side shooter using rows 2 through 4.  
+Controls are up/down arrow to move, right arrow to fire.  
+Unit HP is denoted by color: blue is 3, green is 2, red is 1.  
+Their shots are yellow, yours are cyan.  
+Uses row 1 to display score using the same number pattern as the clock with the addition of yellow as 50.  
 
 ## examples/monitor.js
-Specific to Linux with an nVidia GPU, but still useful to look at.
-Uses rows 0 through 4.
-Row 0: Escape key shows GPU temperature, F1 shows CPU package temperature, F2 through however many cores show individual core temperatures.
-Row 1: Tilde shows average all-thread CPU load, 1 through however many threads (up to 12) show per-thread loads, and Backspace shows GPU load.
-Rows 2-4: Shows the same clock as from the clock example.
-When the screensaver turns on, it waits 5 seconds -> resets the LEDs -> does a "breathing"-like sleep mode where it fades down/up brightness between ~10 to roughly what your profile's brightness setting is in steps of 3. Once the screensaver exits and it's faded back up to the profile brightness, it resumes monitor mode.
+Specific to Linux with an nVidia GPU, but still useful to look at.  
+Uses rows 0 through 4.  
+Row 0: Escape key shows GPU temperature, F1 shows CPU package temperature, F2 through however many cores show individual core temperatures.  
+Row 1: Tilde shows average all-thread CPU load, 1 through however many threads (up to 12) show per-thread loads, and Backspace shows GPU load.  
+Rows 2-4: Shows the same clock as from the clock example.  
+When the screensaver turns on, it waits 5 seconds -> resets the LEDs -> does a "breathing"-like sleep mode where it fades down/up brightness between ~10 to roughly what your profile's brightness setting is in steps of 3. Once the screensaver exits and it's faded back up to the profile brightness, it resumes monitor mode.  
   

@@ -48,7 +48,11 @@ const USB = {
   RgbColorsPart: 9,
   SdkColorsReport: 11
 };
-
+function gc(r, g, b, c) {
+  let f = (n) => Math.min(Math.floor(n), 255);
+  let m = (n, c) => f(255 * Math.pow(n / 255, (c * 2.2)));
+  return { r: m(r, c.r), g: m(g, c.g), b: m(b, c.b) };
+}
 class LedController {
   constructor() {
     this._kb = undefined;
@@ -63,6 +67,7 @@ class LedController {
     }
     this.sdkEnabled = false;
     this.profile = undefined;
+    this.gammaCorrection = { r: 1, g: 1, b: 1 };
   }
   set mode(m) {
     if ((m < 0) || (m > 2)) { throw new Error(`Invalid LED mode ${m}`); }
@@ -230,12 +235,12 @@ class LedController {
       default: return false;
     }
   }
-  updateKeyboard() {
+  updateKeyboard(force = false) {
     let { Direct, Array, Profile } = RGB.Modes;
     switch (this.mode) {
       case Direct: return true;
-      case Array: return this.arrayUpdateKeyboard();
-      case Profile: return this.profileUpdateKeyboard();
+      case Array: return this.arrayUpdateKeyboard(force);
+      case Profile: return this.profileUpdateKeyboard(force);
       default: return false;
     }
   }
@@ -243,8 +248,8 @@ class LedController {
 
   // direct
   directSetLoc(row, col, r, g, b) { return this.directSetKey(this.getSafeLedIndex(row, col), r, g, b); }
-  directSetKey(keyCode, r, g, b) {
-    let { kb } = this;
+  directSetKey(keyCode, ir, ig, ib) {
+    let { kb } = this, { r, g, b } = gc(ir, ig, ib, this.gammaCorrection);
     if (!kb) { return false; }
     else if (!this.sdkEnabled) { return false; }
     else if (keyCode == Keys.None) { return false; }
@@ -289,7 +294,8 @@ class LedController {
     if (!kb) { return false; }
     if (!this.sdkEnabled) { return false; }
     if ((part == Part4) && (!kb.deviceConfig.isTwo)) { return false; }
-    let buf = new Array(RawBufferSize+3);
+    let buf = new Array(RawBufferSize + 3), { gammaCorrection } = this;
+    buf.fill(0);
     buf[0] = USB.SdkColorsReport;
     switch (part) {
       case Part0: buf[1] = 0; buf[2] = 0; break;
@@ -298,16 +304,21 @@ class LedController {
       case Part3: buf[1] = 1; buf[2] = RawBufferSize; break;
       case Part4: buf[1] = 2; buf[2] = 0; break;
     }
-    for (let i = 0, l = RawBufferSize; i < l; i++) { buf[i + 3] = rgb[i] || 0; }
+    for (let i = 0, l = 24; i < l; i++) {
+      let x = pwm[i], { r, g, b } = gc(rgb[x], rgb[x + 0x10], rgb[x + 0x20], gammaCorrection);
+      buf[x + 3] = r;
+      buf[x + 0x10 + 3] = g;
+      buf[x + 0x20 + 3] = b;
+    }
     return kb.sendCommand(buf);
   }
-  arrayUpdateKeyboard() {
+  arrayUpdateKeyboard(force = false) {
     let { kb, sdkMap } = this, bufIndex;
     let Parts = [ RGB.Part0, RGB.Part1, RGB.Part2, RGB.Part3, RGB.Part4 ];
     if (!kb) { return false; }
     if (!this.sdkEnabled) { return false; }
     for (let i = 0, l = kb.deviceConfig.isTwo ? 5 : 4; i < l; i++) {
-      if (sdkMap[i].changed) {
+      if ((sdkMap[i].changed) || (force)) {
         if (!this.sendSdkCommand(Parts[i], sdkMap[i])) { return false; }
         sdkMap[i].changed = false;
       }
@@ -410,7 +421,7 @@ class LedController {
   }
 
   // profile
-  profileUpdateKeyboard() {
+  profileUpdateKeyboard(force = false) {
     let { kb, profileMap } = this;
     if (!kb) { return false; }
     if (this.sdkEnabled) { return false; }

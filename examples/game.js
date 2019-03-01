@@ -107,9 +107,9 @@ tmr = setInterval(() => {
     clearInterval(tmr);
     return;
   }
-  for (let y = 1; y < 5; y++) { for (let x = 1; x < 11; x++) { leds.setLoc(y, x, 20, 20, 20); } }
-  leds.setLoc(1, 0, 20, 20, 20); leds.setLoc(1, 11, 20, 20, 20); leds.setLoc(1, 12, 20, 20, 20);
-  leds.setLoc(4, 11, 20, 20, 20);
+  for (let y = 1; y < 5; y++) { for (let x = 1; x < 11; x++) { leds.setLoc(y, x, 50, 50, 50); } }
+  leds.setLoc(1, 0, 50, 50, 50); leds.setLoc(1, 11, 50, 50, 50); leds.setLoc(1, 12, 50, 50, 50);
+  leds.setLoc(4, 11, 50, 50, 50);
   if (kb.deviceConfig.isISO) { leds.resetLoc(4, 1); }
   for (let i = 0, l = bullets.length; i < l; i++) {
     bullets[i].tick();

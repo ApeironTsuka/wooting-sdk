@@ -13,8 +13,8 @@ function printNum(n, row) {
 }
 setInterval(() => {
   let dt = new Date();
-  for (let y = 2; y < 5; y++) { for (let x = 1; x < 11; x++) { leds.setLoc(y,x, 20, 20, 20); } }
-  leds.setLoc(4, 11, 20, 20, 20);
+  for (let y = 2; y < 5; y++) { for (let x = 1; x < 11; x++) { leds.setLoc(y,x, 50, 50, 50); } }
+  leds.setLoc(4, 11, 50, 50, 50);
   if (kb.deviceConfig.isISO) { leds.resetKey(4, 1); }
   printNum(dt.getHours(), 2);
   printNum(dt.getMinutes(), 3);

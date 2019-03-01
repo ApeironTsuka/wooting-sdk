@@ -99,8 +99,8 @@ function doRGB() {
       let { LEDs } = Keyboard, key;
       for (let i = 0, l = keys.length; i < l; i++) { key = keys[i]; leds.setKey(LEDs[key.key], ...key.v); }
       let dt = new Date();
-      for (let y = 2; y < 5; y++) { for (let x = 1; x < 11; x++) { leds.setLoc(y, x, 20, 20, 20); } }
-      leds.setLoc(4, 11, 20, 20, 20);
+      for (let y = 2; y < 5; y++) { for (let x = 1; x < 11; x++) { leds.setLoc(y, x, 50, 50, 50); } }
+      leds.setLoc(4, 11, 50, 50, 50);
       printNum(dt.getHours(), 2);
       printNum(dt.getMinutes(), 3);
       printNum(dt.getSeconds(), 4);

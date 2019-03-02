@@ -62,10 +62,8 @@ class Keyboard {
     let crc = Keyboard.getCrc16ccitt(buf, CommandSize - 2);
     buf[127] = crc&0xff;
     buf[128] = crc >> 8;
-    try {
-      if (this.ledhdl.write(buf) == CommandSize) { return true; }
-      else { this.disconnect(); return false; }
-    } catch (e) { this.disconnect(); throw e; }
+    if (this.ledhdl.write(buf) == CommandSize) { return true; }
+    else { this.disconnect(); return false; }
   }
   sendQuery(cmd, param0 = 0, param1 = 0, param2 = 0, param3 = 0) {
     let { ReportSize } = USB;
@@ -79,17 +77,15 @@ class Keyboard {
     buf[5] = param1;
     buf[6] = param2;
     buf[7] = param3;
-    try {
-      if (this.ledhdl.sendFeatureReport(buf) == ReportSize) {
-        let buffer = this.ledhdl.readTimeout(20);
-        if ((buffer.length < 128) ||
-            (Keyboard.getCrc16ccitt(buffer, buffer.length - 2) != ((buffer[127] << 8) | buffer[126])) ||
-            ((buffer[0] != 0xd0) || (buffer[1] != 0xda)) ||
-            (buffer[3] != USB.Success)) { return undefined; }
-        return buffer.slice(4, 126);
-      }
-      else { this.disconnect(); return undefined; }
-    } catch (e) { this.disconnect(); throw e; }
+    if (this.ledhdl.sendFeatureReport(buf) == ReportSize) {
+      let buffer = this.ledhdl.readTimeout(20);
+      if ((buffer.length < 128) ||
+          (Keyboard.getCrc16ccitt(buffer, buffer.length - 2) != ((buffer[127] << 8) | buffer[126])) ||
+          ((buffer[0] != 0xd0) || (buffer[1] != 0xda)) ||
+          (buffer[3] != USB.Success)) { return undefined; }
+      return buffer.slice(4, 126);
+    }
+    else { this.disconnect(); return undefined; }
   }
 
   getFirmwareVersion() {

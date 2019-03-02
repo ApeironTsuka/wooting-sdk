@@ -76,8 +76,8 @@ class AnalogController {
     else if (keyCode == Keys.None) { return 0; }
     else if ((kb.deviceConfig.isTwo) && (keyCode > 117)) { return 0; }
     else if ((!kb.deviceConfig.isTwo) && (keyCode > 96)) { return 0; }
-    if (!this.refreshBuffer()) { return 0; }
     if (this.autoUpd) { return this.allKeys[keyCode]; }
+    if (!this.refreshBuffer()) { return 0; }
     for (let i = 1; (i < BufferSize) && (buffer[i] > 0); i += 2) {
       if (buffer[i - 1] == keyCode) { return buffer[i] > 255 ? 255 : buffer[i]; }
     }
@@ -103,6 +103,7 @@ class AnalogController {
     let { kb } = this, out = [], buffer;
     if (!kb) { return false; }
     if (!(buffer = kb.sendQuery(USB.GetAnalogValues))) { return undefined; }
+    // inverted as the analog API is up 0, down 255, while internally it's up 255, down 0
     for (let i = 0, l = buffer.length; i < l; i++) { out[i] = 255-buffer[i]; }
     return out;
   }

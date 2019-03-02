@@ -10,6 +10,8 @@ const USB = {
   // queries
   GetVersion: 1,
   GetSerial: 3,
+  GetDigitalProfile: 12,
+  GetKeyDescriptorDataProfile: 18,
   GetDeviceConfig: 19,
   // response codes
   Unknown: 102,
@@ -22,10 +24,16 @@ class Keyboard {
     this.version = undefined;
     this.analoghdl = undefined;
     this.ledhdl = undefined;
+    this._init = false;
+    this.locks = { num: false, caps: false, scroll: false, fn: false, win: false };
   }
   init() {
     if (!this.connected()) { return false; }
+    if (this._init) { return true; }
+    this._init = true;
     this.getDeviceConfig();
+    this.getFnKeys();
+    this.getActuationPoint();
     this.leds = new LedController();
     this.leds.kb = this;
     this.analog = new AnalogController();
@@ -143,6 +151,36 @@ class Keyboard {
       fnLockedDefault: buffer[6] > 0
     };
   }
+  getFnKeys() {
+    if (!this.connected()) { return undefined; }
+    if (this.fnKeys) { return this.fnKeys; }
+    let buffer, n;
+    if (!(buffer = this.sendQuery(USB.GetKeyDescriptorDataProfile))) { return undefined; }
+    let getName = (k) => { for (let i = 0, keys = Object.keys(AKeys), l = keys.length; i < l; i++) { if (AKeys[keys[i]] == k) { return keys[i]; } } return undefined; };
+    let findIndex = (k) => { let i = buffer.findIndex((n) => n >> 2 == k); return (i > 0 ? i : 255); };
+    return this.fnKeys = {
+      fnLock: { analog: n = findIndex(1), led: LKeys[getName(n)] },
+      mediaNext: { analog: n = findIndex(2), led: LKeys[getName(n)] },
+      mediaPrev: { analog: n = findIndex(3), led: LKeys[getName(n)] },
+      mediaPlay: { analog: n = findIndex(4), led: LKeys[getName(n)] },
+      mediaMute: { analog: n = findIndex(5), led: LKeys[getName(n)] },
+      mediaVolUp: { analog: n = findIndex(6), led: LKeys[getName(n)] },
+      mediaVolDown: { analog: n = findIndex(7), led: LKeys[getName(n)] },
+      brightnessUp: { analog: n = findIndex(8), led: LKeys[getName(n)] },
+      brightnessDown: { analog: n = findIndex(9), led: LKeys[getName(n)] },
+      selectAnalogProfile1: { analog: n = findIndex(10), led: LKeys[getName(n)] },
+      selectAnalogProfile2: { analog: n = findIndex(11), led: LKeys[getName(n)] },
+      selectAnalogProfile3: { analog: n = findIndex(12), led: LKeys[getName(n)] },
+      toggleWinkeyDisable: { analog: n = findIndex(13), led: LKeys[getName(n)] }
+    };
+  }
+  getActuationPoint() {
+    if (!this.connected()) { return -1; }
+    let buffer;
+    if (!(buffer = this.sendQuery(USB.GetDigitalProfile))) { return -1; }
+    // inverted as the analog API is up 0, down 255, while internally it's up 255, down 0
+    return this.actuationPoint = 255-buffer[0];
+  }
 
   static getCrc16ccitt(buf, size) {
     let crc = 0, ind = 0;
@@ -187,6 +225,7 @@ class Keyboard {
         if (!found) { continue; }
         board.analoghdl = hdl;
         board.isTwo = devices[i].productId == TWO_PID;
+        found = board.init();
         break;
       }
     }

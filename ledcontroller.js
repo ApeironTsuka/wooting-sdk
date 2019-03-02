@@ -117,12 +117,15 @@ class LedController {
       let a = [...color1, ...color2], out = [];
       for (let i = 0, l = a.length; i < l; i += 2) { out.push(...unpackRgb([a[i], a[i + 1]])); }
       return out;
-    };
+    }, c = unpackRgb(main.slice(2, 4));
     let profile = {
       id: n,
       brightness: main[1],
-      capsColor: unpackRgb(main.slice(2, 4)),
+      capsLockColor: c,
       fnLockColor: unpackRgb(main.slice(4, 6)),
+      scrollLockColor: [ c[0], c[1], c[2] ],
+      numLockColor: [ c[0], c[1], c[2] ],
+      winLockColor: [ c[0], c[1], c[2] ],
       map: unpackMap(),
       effects: {
         mode: main[0],

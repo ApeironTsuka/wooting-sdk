@@ -1,4 +1,5 @@
 const { Keyboard } = require('../keyboard'),
+      { Toolkit } = require('../toolkit'),
       fs = require('fs'),
       cp = require('child_process'),
       sensors = require('sensors.js'),
@@ -45,25 +46,18 @@ function printNum(n, row) {
 }
 console.log(`Found Keyboard\nIt's a Wooting ${kb.isTwo?'Two':'One'}\nFirmware: ${kb.getFirmwareVersion()}`);
 kb.init();
-let leds = kb.leds;
+let leds = kb.leds, tk = new Toolkit();
 leds.mode = Keyboard.Modes.Array;
 leds.init();
+tk.use(Toolkit.Features.All);
+tk.enable();
+tk.init(kb);
 doRGB();
 function doRGB() {
-  let pause = false, pause2 = false, end = false, mp = [], lastProfile = kb.leds.profile.id, counter = 0;
+  let pause = false, pause2 = false, mp = [];
   console.log('Begin watching CPU/GPU load/temps and clock..');
   setInterval(() => {
     if (pause) { return; }
-    if (end) { return; }
-    if (counter == 5) {
-      let x = kb.leds.getCurrentProfile();
-      if (x != lastProfile) {
-        kb.leds.profile = kb.leds.loadProfile(x);
-        lastProfile = x;
-      }
-      counter = -1;
-    }
-    counter++;
     let keys = [];
     sensorsPromise()
     .then((data) => {
@@ -107,45 +101,7 @@ function doRGB() {
       leds.updateKeyboard();
     })
     .catch((err) => { console.log(err.stack); });
-  }, 200);
-  let inputId;
-  // TODO haven't figured out how to auto-detect the correct input path better than this
-  for (let list = fs.readdirSync('/sys/class/leds'), i = list.length - 1; i >= 0; i--) {
-    if (/^Wooting/.test(fs.readFileSync(`/sys/class/leds/${list[i]}/device/name`))) {
-      inputId = list[i].split(':')[0].replace(/^input/, '');
-      break;
-    }
-  }
-  if (leds.mode != Keyboard.Modes.Profile) {
-    let lnl = true, lcl = false, lsl = false;
-    console.log('Begin watching capslock/numlock state..');
-    setInterval(() => {
-      if (end) { return; }
-      // TODO when/if custom numlock/scroll lock color is added, implement (and in loadProfile())
-      let { LEDs } = Keyboard, path = `/sys/class/leds/input${inputId}::`;
-      let capslock = !!parseInt(fs.readFileSync(`${path}capslock/brightness`, 'utf8')),
-          numlock = !!parseInt(fs.readFileSync(`${path}numlock/brightness`, 'utf8')),
-          scrollock = !!parseInt(fs.readFileSync(`${path}scrolllock/brightness`, 'utf8'));
-      if (numlock != lnl) {
-        lnl = numlock;
-        if (!numlock) { leds.setKey(LEDs.NumLock, ...leds.profile.capsColor); }
-        else { leds.resetKey(LEDs.NumLock); }
-        leds.updateKeyboard();
-      }
-      if (capslock != lcl) {
-        lcl = capslock;
-        if (capslock) { leds.setKey(LEDs.CapsLock, ...leds.profile.capsColor); }
-        else { leds.resetKey(LEDs.CapsLock); }
-        leds.updateKeyboard();
-      }
-      if (scrollock != lsl) {
-        lsl = scrollock;
-        if (scrollock) { leds.setKey(LEDs.ScrollLock, ...leds.profile.capsColor); }
-        else { leds.resetKey(LEDs.ScrollLock); }
-        leds.updateKeyboard();
-      }
-    }, 50);
-  }
+  }, 200)
   let sleepBrightness, sleepDir = -3, tmr;
   let beginSleeping = () => {
     if ((!pause2) && (sleepBrightness >= leds.profile.brightness)) {
@@ -188,12 +144,6 @@ function doRGB() {
     }
   });
 }
-process.on('SIGINT', () => {
-  end = true;
-  setTimeout(() => {
-    if (xss) { xss.kill(); }
-    kb.disconnect();
-    process.exit();
-  }, 400);
-});
+process.on('SIGINT', () => process.exit());
+process.on('exit', () => { if (xss) { xss.kill(); } });
 

@@ -1,7 +1,9 @@
-const { Keyboard } = require('../keyboard');
-let kb = Keyboard.get(), leds, lastProfile;
+const { Keyboard } = require('../keyboard'), { Toolkit } = require('../toolkit');
+let kb = Keyboard.get(), tk = new Toolkit(), leds;
 kb.init(); leds = kb.leds; leds.init();
-lastProfile = kb.leds.profile.id;
+tk.init(kb);
+tk.use(Toolkit.Features.All);
+tk.enable();
 function printNum(n, row) {
   let r, g, b, o = row == 4 ? 2 : 1;
   b = Math.floor(n/10); n -= b*10;
@@ -21,17 +23,5 @@ setInterval(() => {
   printNum(dt.getSeconds(), 4);
   leds.updateKeyboard();
 }, 250);
-setInterval(() => {
-  let x = kb.leds.getCurrentProfile();
-  if (x != lastProfile) {
-    kb.leds.profile = kb.leds.loadProfile(x);
-    lastProfile = x;
-  }
-}, 1000);
-process.on('SIGINT', () => {
-  setTimeout(() => {
-    kb.disconnect();
-    process.exit();
-  }, 400);
-});
+process.on('SIGINT', () => process.exit());
 

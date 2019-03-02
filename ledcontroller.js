@@ -147,7 +147,7 @@ class LedController {
     if (this.sdkEnabled) { return false; }
     let { profile } = this;
     let packRgb = (rgb) => { let x = ((0xf8 & rgb[0]) << 8) | ((0xfc & rgb[1]) << 3) | ((0xf8 & rgb[2]) >> 3); return [ x & 0xff, (x & 0xff00) >> 8 ]; };
-    let buf = [ USB.RgbMainPart, profile.effects.mode, n, ...packRgb(profile.capsColor), ...packRgb(profile.fnLockColor) ];
+    let buf = [ USB.RgbMainPart, profile.effects.mode, n, ...packRgb(profile.capsLockColor), ...packRgb(profile.fnLockColor) ];
     if (!kb.sendCommand(buf)) { return false; }
     if (!kb.sendQuery(USB.RefreshRgbColors)) { return false; }
     return true;

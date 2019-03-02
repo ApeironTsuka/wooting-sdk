@@ -1,6 +1,7 @@
-const { Keyboard } = require('../keyboard');
-let kb = Keyboard.get(), leds, analog, lastProfile;
+const { Keyboard } = require('../keyboard'), { Toolkit } = require('../toolkit');
+let kb = Keyboard.get(), tk = new Toolkit(), leds, analog;
 kb.init(); leds = kb.leds; analog = kb.analog; leds.init();
+tk.init(kb); tk.use(Toolkit.Features.All); tk.enable();
 let ships = [], bullets = [], score = 0;
 function printNum(n, row) {
   let r, g, b, o = 0;
@@ -77,21 +78,9 @@ class bullet {
   }
 }
 let player = new ship(), tmr, n = 0, over = false;
-player.cb = () => {
-  kb.analog.autoUpd = false;
-  over = true;
-}
+player.cb = () => { over = true; };
 ships.push(player);
 setInterval(()=>{}, 10000);
-kb.analog.autoUpd = true;
-lastProfile = kb.leds.profile.id;
-setInterval(() => {
-  let x = kb.leds.getCurrentProfile();
-  if (x != lastProfile) {
-    kb.leds.profile = kb.leds.loadProfile(x);
-    lastProfile = x;
-  }
-}, 1000);
 console.log("Controls:\nUp arrow moves up\nDown arrow moves down\nRight arrow fires");
 tmr = setInterval(() => {
   if (over) {
@@ -119,9 +108,9 @@ tmr = setInterval(() => {
     ships[i].tick();
     if (ships[i].del) { ships.splice(i, 1); i--; l--; }
   }
-  if (analog.readKey(Keyboard.Analog.Up) > 20) { player.up(); }
-  if (analog.readKey(Keyboard.Analog.Down) > 20) { player.down(); }
-  if (analog.readKey(Keyboard.Analog.Right) > 20) {
+  if (analog.readKey(Keyboard.Analog.Up) > kb.actuationPoint) { player.up(); }
+  if (analog.readKey(Keyboard.Analog.Down) > kb.actuationPoint) { player.down(); }
+  if (analog.readKey(Keyboard.Analog.Right) > kb.actuationPoint) {
     let b = new bullet();
     b.x = player.x + 1;
     b.y = player.y;
@@ -146,12 +135,5 @@ tmr = setInterval(() => {
   printNum(score, 1);
   leds.updateKeyboard();
 }, 100);
-process.on('SIGINT', () => {
-  kb.analog.autoUpd = false;
-  clearInterval(tmr);
-  setTimeout(() => {
-    kb.disconnect();
-    process.exit();
-  }, 400);
-});
+process.on('SIGINT', () => process.exit());
 

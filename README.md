@@ -120,6 +120,33 @@ analog.readFull: Returns an object in the format { total: keysRead, keys: [ Key0
 analog.getFull: Queries the keyboard for the analog state of (mostly) all keys. For the One, it returns the analog values for keys 0 through 86 (ANSI) or 87 (ISO). For the Two, it returns the values for keys 0 through 110 (ANSI) or 111 (ISO). This does NOT update the internal buffers and is mostly useful for debugging.
 ```
 
+# Toolkit
+
+Implements some convenience features.
+
+## Usage
+`const { Toolkit } = require('wooting-sdk/toolkit');`  
+
+`let tk = new Toolkit();`  
+Tell it what features to use (more info below)  
+`tk.use(Toolkit.Features.All)`  
+Must pass a fully initialized keyboard to it. This includes initializing the LEDs  
+`tk.init(kb)`  
+Finally, enable it  
+`tk.enable(true/false)`  
+
+## Features
+
+Toolkit.Features.Locks:  
+Handle caps lock, scroll lock, num lock, Windows key lock, and Fn lock combos and turn on/off their indicator colors. These can be changed via kb.leds.profile. At present, scroll lock, num lock, and Windows key lock default to the color assigned to caps lock in the profile as there are no settings for them yet.  
+  
+Toolkit.Features.Profile:  
+Watch for and automatically load + use the new profile whenever the user changes it (for example via A1/A2/A3 on the Two, Fn+Left/Down/Right on the One, or Mode key)  
+  
+Toolkit.Features.ExitHandler:  
+Recommended at the least. Sets up a simple Node process event handler for the exit event to call kb.disconnect(). This makes sure that the keyboard gets reset properly on process exit. Note that you may also need your own handler for SIGINT if you're using the console. See the examples for that.  
+
+
 # Included examples
 
 ## examples/clock.js

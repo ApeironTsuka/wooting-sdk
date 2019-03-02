@@ -116,7 +116,6 @@ leds.profileSetColormap(map)
 
 ## Analog:
 ```
-analog.autoUpd: Setting to true will start a 5ms loop auto-updating internal buffers. This changes the readKey, readLoc, and readFull behavior to only use the internal buffer rather than calling refreshBuffer(). Setting to false stops this loop.
 analog.readFull: Returns an object in the format { total: keysRead, keys: [ Key0Code, Key0Level, Key1Code, ... ] }.
 analog.getFull: Queries the keyboard for the analog state of (mostly) all keys. For the One, it returns the analog values for keys 0 through 86 (ANSI) or 87 (ISO). For the Two, it returns the values for keys 0 through 110 (ANSI) or 111 (ISO). This does NOT update the internal buffers and is mostly useful for debugging.
 ```

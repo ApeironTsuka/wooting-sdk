@@ -20,48 +20,30 @@ const Analog = {
   ColsTwo: 21,
   BufferSize: 32
 };
-
+function analogHdl(data) {
+  let { BufferSize } = Analog;
+  let { buffer, allKeys } = this;
+  allKeys.fill(0);
+  for (let i = 0; i < BufferSize; i += 2) { allKeys[data[i]] = Math.min(data[i + 1], 255); }
+}
 class AnalogController {
   constructor() {
     this.buffer = [];
     this.allKeys = undefined;
     this._kb = undefined;
     this._autoUpd = false;
-    this.tmr = undefined;
+    this.boundf = undefined;
   }
   set kb(b) {
     if (!b.connected()) { throw new Error(`Keyboard isn't connected`); }
+    if ((this.kb) && (this.boundf)) { this.kb.analoghdl.removeEventListener('data', this.boundf); }
     this._kb = b;
     this.hdl = b.analoghdl;
     this.allKeys = new Array(b.deviceConfig.isTwo ? 117 : 96);
     this.allKeys.fill(0);
+    this.hdl.on('data', this.boundf = analogHdl.bind(this));
   }
   get kb() { return this._kb; }
-  set autoUpd(v) {
-    this._autoUpd = !!v;
-    if (this._autoUpd) {
-      let { BufferSize } = Analog;
-      this.tmr = true;
-      this.tmr = setInterval(() => {
-        this.refreshBuffer();
-        let { buffer, allKeys } = this;
-        allKeys.fill(0);
-        for (let i = 0; i < BufferSize; i += 2) { allKeys[buffer[i]] = Math.min(buffer[i + 1], 255); }
-      }, 5);
-    }
-    else if (this.tmr) { clearInterval(this.tmr); this.tmr = undefined; }
-  }
-  get autoUpd() { return this._autoUpd; }
-  refreshBuffer() {
-    let { kb, hdl } = this;
-    if (!kb) { return false; }
-    try {
-      let b = [], { BufferSize } = Analog;
-      while (b.length < BufferSize) { b = [...b, ...hdl.readTimeout(0)]; }
-      this.buffer = b;
-    } catch (e) { kb.disconnect(); return false; }
-    return true;
-  }
   readLoc(row, col) {
     let { kb } = this;
     if (!kb) { return 0; }
@@ -76,27 +58,12 @@ class AnalogController {
     else if (keyCode == Keys.None) { return 0; }
     else if ((kb.deviceConfig.isTwo) && (keyCode > 117)) { return 0; }
     else if ((!kb.deviceConfig.isTwo) && (keyCode > 96)) { return 0; }
-    if (this.autoUpd) { return this.allKeys[keyCode]; }
-    if (!this.refreshBuffer()) { return 0; }
-    for (let i = 1; (i < BufferSize) && (buffer[i] > 0); i += 2) {
-      if (buffer[i - 1] == keyCode) { return buffer[i] > 255 ? 255 : buffer[i]; }
-    }
-    return 0;
+    return this.allKeys[keyCode];
   }
   readFull() {
     let { BufferSize } = Analog, keys = new Array(BufferSize), written = 0;
-    if (this.autoUpd) {
-      let { allKeys } = this, k = 0;
-      for (let i = 0, l = allKeys.length; i < l; i++, k+=2) { if (allKeys[i] > 0) { keys[k] = i; keys[k + 1] = allKeys[i]; written++; } }
-    } else {
-      if (!this.refreshBuffer()) { return undefined; }
-      let { buffer } = this;
-      for (let i = 0; i < BufferSize; i += 2) {
-        let key = buffer[i], val = buffer[i + 1];
-        if (val > 0) { keys[i] = key; keys[i + 1] = Math.min(val, 255); written++; }
-        else { return { total: written, keys }; }
-      }
-    }
+    let { allKeys } = this, k = 0;
+    for (let i = 0, l = allKeys.length; i < l; i++, k+=2) { if (allKeys[i] > 0) { keys[k] = i; keys[k + 1] = allKeys[i]; written++; } }
     return { total: written, keys };
   }
   getFull() {

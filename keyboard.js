@@ -10,9 +10,11 @@ const USB = {
   // queries
   GetVersion: 1,
   GetSerial: 3,
+  LoadRgbProfile: 7,
   GetDigitalProfile: 12,
   GetKeyDescriptorDataProfile: 18,
   GetDeviceConfig: 19,
+  ActivateProfile: 23,
   // response codes
   Unknown: 102,
   Success: 136,
@@ -176,6 +178,14 @@ class Keyboard {
     if (!(buffer = this.sendQuery(USB.GetDigitalProfile))) { return -1; }
     // inverted as the analog API is up 0, down 255, while internally it's up 255, down 0
     return this.actuationPoint = 255-buffer[0];
+  }
+  useProfile(n = 0) {
+    if (!this.connected()) { return false; }
+    if ((n < 0) || (n > 3)) { return false; }
+    if (!this.sendQuery(USB.ActivateProfile, n)) { return false; }
+    if (!this.sendQuery(USB.LoadRgbProfile, n)) { return false; }
+    if (this.leds._init) { if (!(this.leds.profile = this.leds.loadProfile(n))) { return false; } }
+    return true;
   }
 
   static getCrc16ccitt(buf, size) {

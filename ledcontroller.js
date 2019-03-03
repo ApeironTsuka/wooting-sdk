@@ -58,6 +58,7 @@ class LedController {
     this._kb = undefined;
     this._mode = RGB.Modes.Array;
     this._autoUpd = false;
+    this._init = false;
     this.profileMap = [];
     let map = this.sdkMap = [];
     for (let i = 0; i < 5; i++) {
@@ -192,6 +193,7 @@ class LedController {
       default: return false;
     }
     this.setColormap(this.profile.map);
+    this._init = true;
     return ret;
   }
   setLoc(row, col, r, g, b) {

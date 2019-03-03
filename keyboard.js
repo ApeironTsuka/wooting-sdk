@@ -182,8 +182,11 @@ class Keyboard {
   useProfile(n = 0) {
     if (!this.connected()) { return false; }
     if ((n < 0) || (n > 3)) { return false; }
+    let sdk = this.leds.sdkEnabled;
+    if (sdk) { this.leds.enableSdk(false); }
     if (!this.sendQuery(USB.ActivateProfile, n)) { return false; }
     if (!this.sendQuery(USB.LoadRgbProfile, n)) { return false; }
+    if (sdk) { this.leds.enableSdk(true); }
     if (this.leds._init) { if (!(this.leds.profile = this.leds.loadProfile(n))) { return false; } }
     return true;
   }

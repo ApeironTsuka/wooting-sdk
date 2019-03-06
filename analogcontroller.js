@@ -44,14 +44,7 @@ class AnalogController {
     this.hdl.on('data', this.boundf = analogHdl.bind(this));
   }
   get kb() { return this._kb; }
-  readLoc(row, col) {
-    let { kb } = this;
-    if (!kb) { return 0; }
-    else if (row >= Analog.Rows) { return 0; }
-    else if ((!kb.deviceConfig.isTwo) && (col >= Analog.ColsOne)) { return 0; }
-    else if ((kb.deviceConfig.isTwo) && (col >= Analog.ColsTwo)) { return 0; }
-    return this.readKey(scanIndexArray[row][col]);
-  }
+  readLoc(row, col) { return this.readKey(this.getSafeAnalogIndex(row, col)); }
   readKey(keyCode) {
     let { kb, buffer } = this, { BufferSize } = Analog;
     if (!kb) { return 0; }
@@ -73,6 +66,15 @@ class AnalogController {
     // inverted as the analog API is up 0, down 255, while internally it's up 255, down 0
     for (let i = 0, l = buffer.length; i < l; i++) { out[i] = 255-buffer[i]; }
     return out;
+  }
+  getSafeAnalogIndex(row, col) {
+    let { kb } = this;
+    if (!kb) { return 255; }
+    else if ((row < 0) || (col < 0)) { return Keys.None; }
+    else if (row >= Analog.Rows) { return Keys.None; }
+    else if ((!kb.deviceConfig.isTwo) && (col >= Analog.ColsOne)) { return Keys.None; }
+    else if ((kb.deviceConfig.isTwo) && (col >= Analog.ColsTwo)) { return Keys.None; }
+    return scanIndexArray[row][col];
   }
 }
 

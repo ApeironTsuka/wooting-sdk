@@ -188,6 +188,7 @@ class Keyboard {
     if (!this.sendQuery(USB.LoadRgbProfile, n)) { return false; }
     if (sdk) { this.leds.enableSdk(true); }
     if (this.leds._init) { if (!(this.leds.profile = this.leds.loadProfile(n))) { return false; } }
+    this.getActuationPoint();
     return true;
   }
 

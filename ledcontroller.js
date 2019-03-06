@@ -438,7 +438,7 @@ class LedController {
         default: return false;
       }
     };
-    if (!classifyEffects(this.profile.effects)) { return false; }
+    if ((!force) && (!classifyEffects(this.profile.effects))) { return false; }
     let size = kb.deviceConfig.isTwo ? 118 : 96;
     if (profileMap.length < size * 3) { return false; }
     let packRgb = (rgb) => { let x = ((0xf8 & rgb[0]) << 8) | ((0xfc & rgb[1]) << 3) | ((0xf8 & rgb[2]) >> 3); return [ x & 0xff, (x & 0xff00) >> 8 ]; };

@@ -36,19 +36,26 @@ class Toolkit {
       if (!this.enabled) { return; }
       if (settings.profile) {
         try {
-          profile = kb.leds.getCurrentProfile();
+          profile = kb.getCurrentProfile();
           if (profile != lastProfile) {
-            kb.leds.profile = kb.leds.loadProfile(profile);
+            let { leds, locks } = kb;
+            leds.profile = leds.loadProfile(profile);
             actuationPoint = kb.getActuationPoint();
-            kb.getDigitalEnabled();
+            kb.getDigitalEnabled(profile);
+            lastProfile = profile;
             if (!kb.digitalEnabled) {
               leds.resetKey(lkeys[0]);
               leds.resetKey(lkeys[2]);
               leds.resetKey(lkeys[3]);
               leds.resetKey(lkeys[4]);
               leds.resetKey(lkeys[5]);
+            } else {
+              if (locks.fn) { leds.setKey(lkeys[0], ...leds.profile.fnLockColor); }
+              if (locks.win) { leds.setKey(lkeys[2], ...leds.profile.winLockColor); }
+              if (locks.scroll) { leds.setKey(lkeys[3], ...leds.profile.scrollLockColor); }
+              if (locks.caps) { leds.setKey(lkeys[4], ...leds.profile.capsLockColor); }
+              if (locks.num) { leds.setKey(lkeys[5], ...leds.profile.numLockColor); }
             }
-            lastProfile = profile;
           }
         } catch (e) { /* do nothing as it is 99% likely to be getCurrentProfile throwing it */ }
       }

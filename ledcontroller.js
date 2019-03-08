@@ -33,7 +33,6 @@ const RGB = {
 
 const USB = {
   // queries
-  GetCurrentRgbProfileIndex: 5,
   GetRgbMainProfile: 6,
   GetRgbColorsPart1: 26,
   GetRgbColorsPart2: 27,
@@ -89,14 +88,10 @@ class LedController {
   set autoUpd(v) { this._autoUpd = !!v; }
   get autoUpd() { return this._autoUpd; }
 
-  getCurrentProfile() {
-    let { kb } = this, buffer;
-    if (!kb) { return -1; }
-    if (!(buffer = kb.sendQuery(USB.GetCurrentRgbProfileIndex))) { return -1; }
-    return buffer[0];
-  }
   loadCurrentProfile(set = true) {
-    let ind = this.getCurrentProfile();
+    let { kb } = this, ind;
+    if (!kb) { return false; }
+    ind = kb.getCurrentProfile();
     if (ind == -1) { return false; }
     if (!(this.profile = this.loadProfile(ind, set))) { return false; }
     return true;

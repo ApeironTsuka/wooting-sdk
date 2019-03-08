@@ -68,7 +68,9 @@ kb.getSerialNumber(): Reads the full serial number info into kb.sn as an object.
 kb.getDeviceConfig(): Reads the device configuration (default profiles, tachyon mode, layout, etc). Saves as kb.deviceConfig. For fnKey and modeKey, they'll be in the format { analog: code, led: code }. This is automatically called as part of kb.init().
 kb.getFnKeys(): Reads the mappings for the Fn key, media keys, brightness keys, and toggleable Windows key. Saves them as kb.fnKeys in the same way as getDeviceConfig(). This is automatically called as part of kb.init().
 kb.getActuationPoint(): Returns the analog level equivalent to the actuation point set in the current profile. Saves it as kb.actuationPoint as well. This is automatically called as part of kb.init().
-leds.getCurrentProfile(): Returns the index of the currently in-use profile. Ranges 0 to 3.
+kb.getDigitalEnabled(n = 0): Returns if digital keys are enabled on the supplied profile. Saves it as kb.digitalEnabled. This is automatically called as part of kb.init().
+kb.getCurrentProfile(): Returns the index of the currently in-use profile. Ranges 0 to 3.
+
 leds.loadCurrentProfile(set = true): Reads the currently in-use profile and saves it as leds.profile. If set is true, it copies the profile color map into the internal buffers.
 leds.loadProfile(n = 0, set = true): Returns a specific profile.
 ```

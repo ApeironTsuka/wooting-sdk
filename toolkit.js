@@ -40,6 +40,14 @@ class Toolkit {
           if (profile != lastProfile) {
             kb.leds.profile = kb.leds.loadProfile(profile);
             actuationPoint = kb.getActuationPoint();
+            kb.getDigitalEnabled();
+            if (!kb.digitalEnabled) {
+              leds.resetKey(lkeys[0]);
+              leds.resetKey(lkeys[2]);
+              leds.resetKey(lkeys[3]);
+              leds.resetKey(lkeys[4]);
+              leds.resetKey(lkeys[5]);
+            }
             lastProfile = profile;
           }
         } catch (e) { /* do nothing as it is 99% likely to be getCurrentProfile throwing it */ }
@@ -51,11 +59,11 @@ class Toolkit {
           { None } = Keyboard.Analog, n;
       if (!kb.connected()) { return; }
       if (!this.enabled) { return; }
-      if (settings.locks) {
-        akeys[1] = fnKeys.fnLock.analog;
-        akeys[2] = fnKeys.toggleWinkeyDisable.analog;
-        lkeys[1] = fnKeys.fnLock.led;
-        lkeys[2] = fnKeys.toggleWinkeyDisable.led;
+      akeys[1] = fnKeys.fnLock.analog;
+      akeys[2] = fnKeys.toggleWinkeyDisable.analog;
+      lkeys[1] = fnKeys.fnLock.led;
+      lkeys[2] = fnKeys.toggleWinkeyDisable.led;
+      if ((settings.locks) && ((kb.leds.profile.id == 0) || (kb.digitalEnabled))) {
         for (let i = 0, l = akeys.length; i < l; i++) {
           lstates[i] = states[i];
           if (akeys[i] == None) { states[i] = false; continue; }

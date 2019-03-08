@@ -12,6 +12,7 @@ const USB = {
   GetSerial: 3,
   LoadRgbProfile: 7,
   GetDigitalProfile: 12,
+  GetAnalogProfileMainPart: 13,
   GetKeyDescriptorDataProfile: 18,
   GetDeviceConfig: 19,
   ActivateProfile: 23,
@@ -179,6 +180,12 @@ class Keyboard {
     // inverted as the analog API is up 0, down 255, while internally it's up 255, down 0
     return this.actuationPoint = 255-buffer[0];
   }
+  getDigitalEnabled() {
+    if (!this.connected()) { return false; }
+    let buffer;
+    if (!(buffer = this.sendQuery(USB.GetAnalogProfileMainPart))) { return false; }
+    return this.digitalEnabled = buffer[1] == 1;
+  }
   useProfile(n = 0) {
     if (!this.connected()) { return false; }
     if ((n < 0) || (n > 3)) { return false; }
@@ -189,6 +196,7 @@ class Keyboard {
     if (sdk) { this.leds.enableSdk(true); }
     if (this.leds._init) { if (!(this.leds.profile = this.leds.loadProfile(n))) { return false; } }
     this.getActuationPoint();
+    this.getDigitalEnabled();
     return true;
   }
 

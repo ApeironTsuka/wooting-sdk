@@ -149,7 +149,55 @@ Watch for and automatically load + use the new profile whenever the user changes
   
 Toolkit.Features.ExitHandler:  
 Recommended at the least. Sets up a simple Node process event handler for the exit event to call kb.disconnect(). This makes sure that the keyboard gets reset properly on process exit. Note that you may also need your own handler for SIGINT if you're using the console. See the examples for that.  
+  
+Toolkit.Features.Layer:  
+Disables setting key colors based on locks from inside the Toolkit logic, relying instead on the lockLayer implemention.  
 
+# Layers
+
+Implements layers with alpha support.
+
+## Usage
+`const { Layer, Renderer } = require('wooting-sdk/layered');`  
+`let renderer = new Renderer(kb);`  
+Add a layer  
+`renderer.addLayer(layer);`  
+Start it up  
+`renderer.init();`  
+
+## Creating a custom layer
+```
+class customLayer extends Layer {
+  tick() {}
+  draw(map) { /* do extra stuff */ super.draw(map); }
+}
+```
+The tick() and draw() functions are called every ~100ms.  
+  
+tick() is for any state/drawing logic you may need.  
+draw(map) is optionally for drawing to the main map directly at any arbitrary location. You MUST call super.draw(map) from within if you decide to override.  
+  
+Setting a layer key's red, green, or blue to -1 sets that channel as transparent, so it has no effect on the map. Useful for blending.
+Setting a layer key's alpha to -1 sets the entire key as transparent, so it has no effect on the map. No different to setting the alpha to 0, but short-circuits doing any of the blending math, and makes it more obvious what's going on.
+
+## Functions
+```
+renderer.init(): Initialize the internal "precise" timer and start rendering.
+renderer.stop(): Stop the internal timer.
+renderer.addLayer(layer, ind = -1): Add a layer to the renderer, optionally at a specific index.
+renderer.moveLayer(layer, ind = -1): Move the given layer.
+renderer.remLayer(layer): Remove the layer.
+
+layer.tick(): Called every ~100ms. All layers are tick()'d before the drawing stage.
+layer.draw(map): Called every ~100ms. This does the blending logic between the layer's map and the renderer's map.
+layer.setColormap(map): A special version of leds.setColormap that also copies an alpha channel.
+layer.setColormapNoAlpha(map, alpha = 255): Copies a normal colormap (like to leds.setColormap) and uses the given alpha instead.
+The following functions have the same use/signature as their leds counterparts:
+layer.setLoc
+layer.setKey
+layer.resetLoc
+layer.resetKey
+```
 
 # Included examples
 
@@ -172,4 +220,7 @@ Row 0: Escape key shows GPU temperature, F1 shows CPU package temperature, F2 th
 Row 1: Tilde shows average all-thread CPU load, 1 through however many threads (up to 12) show per-thread loads, and Backspace shows GPU load.  
 Rows 2-4: Shows the same clock as from the clock example.  
 When the screensaver turns on, it waits 5 seconds -> resets the LEDs -> does a "breathing"-like sleep mode where it fades down/up brightness between ~10 to roughly what your profile's brightness setting is in steps of 3. Once the screensaver exits and it's faded back up to the profile brightness, it resumes monitor mode.  
-  
+
+## examples/layers.js
+Boring little demo of using layers and how to use the Toolkit with them.  
+Does some blending of a couple random-ish layers on top of the profile's map, with the Toolkit's lock layer on top of it all.  

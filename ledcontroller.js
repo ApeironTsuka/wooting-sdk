@@ -253,7 +253,7 @@ class LedController {
     if (!kb) { return false; }
     else if (!this.sdkEnabled) { return false; }
     else if (keyCode == Keys.None) { return false; }
-    else if (keyCode >= 117) { return false; }
+    else if (keyCode >= 118) { return false; }
     else if ((!kb.deviceConfig.isTwo) && (keyCode >= 96)) { return false; }
     else if (keyCode == RGB.LeftShiftANSI) {
       let ansi = kb.sendQuery(USB.SdkSingleColor, b, g, r, RGB.LeftShiftANSI) !== undefined,
@@ -273,7 +273,7 @@ class LedController {
     if (!kb) { return false; }
     else if (!this.sdkEnabled) { return false; }
     else if (keyCode == Keys.None) { return false; }
-    else if (keyCode >= 117) { return false; }
+    else if (keyCode >= 118) { return false; }
     else if ((!kb.deviceConfig.isTwo) && (keyCode >= 96)) { return false; }
     else if (keyCode == RGB.LeftShiftANSI) {
       let ansi = kb.sendQuery(USB.SdkResetSingle, RGB.LeftShiftANSI) !== undefined,
@@ -330,7 +330,7 @@ class LedController {
     let { kb, sdkMap } = this, buf, bufIndex;
     if (!kb) { return false; }
     else if (!this.sdkEnabled) { return false; }
-    else if (keyCode >= 117) { return false; }
+    else if (keyCode >= 118) { return false; }
     else if ((!kb.deviceConfig.isTwo) && (keyCode >= 96)) { return false; }
     if (keyCode >= 96) { buf = sdkMap[4]; }
     else if (keyCode >= 72) { buf = sdkMap[3]; }
@@ -368,7 +368,7 @@ class LedController {
     let { kb } = this;
     if (!kb) { return false; }
     if (!this.sdkEnabled) { return false; }
-    for (let i = 0, l = kb.deviceConfig.isTwo ? 117 : 96; i < l; i++) {
+    for (let i = 0, l = kb.deviceConfig.isTwo ? 118 : 96; i < l; i++) {
       if (!this.arrayChangeKey(i, map[i * 3], map[i * 3 + 1], map[i * 3 + 2])) { return false; }
     }
     return true;
@@ -379,7 +379,7 @@ class LedController {
     if (!this.sdkEnabled) { return false; }
     let index = 0;
     for (let row = 0, rl = RGB.Rows; row < cl; row++) {
-      for (let col = 0, cl = kb.deviceConfig.isTwo ? RGB.RowsTwo : RGB.RowsOne; col < cl; col++) {
+      for (let col = 0, cl = kb.deviceConfig.isTwo ? RGB.ColsTwo : RGB.ColsOne; col < cl; col++) {
         let r = map[index],
             g = map[index + 1],
             b = map[index + 2];

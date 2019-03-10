@@ -57,7 +57,7 @@ class Toolkit {
           profile = kb.getCurrentProfile();
           if (profile != lastProfile) {
             let { leds, locks } = kb;
-            leds.profile = leds.loadProfile(profile);
+            leds.profile = leds.loadProfile(profile, !settings.layer);
             actuationPoint = kb.getActuationPoint();
             kb.getDigitalEnabled(profile);
             lastProfile = profile;

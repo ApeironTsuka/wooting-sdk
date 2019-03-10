@@ -1,36 +1,36 @@
-function PreciseTimer(func, delay, ...args) {
-  this.delay = delay;
-  this.func = func;
-  this.args = new Array();
-  this.args.push(this, ...args);
-  this._end = false;
-};
-PreciseTimer.prototype.begin = function () {
-  this.lasttick = new Date().getTime();
-  setTimeout(() => this.run(), this.delay);
-};
-PreciseTimer.prototype.end = function () { this._end = true; };
-PreciseTimer.prototype.run = function () {
-  let t1 = new Date().getTime(), t2, d, xx, xx2, { delay } = this;
-  this.func(...this.args);
-  t2 = new Date().getTime();
-  d = delay - (t2 - this.lasttick);
-  this.lasttick = t2 + d;
-  xx = delay + d;
-  if (xx < 0) {
-    xx = -d / delay;
-    xx2 = Math.floor(xx) + 1;
-    xx = d + (xx2 * delay);
-    this.lasttick += (xx2 * delay);
-    t1 = new Date().getTime();
-    for (let i = 1; i <= xx2; i++) { this.func(...this.args); }
-    t2 = new Date().getTime();
-    t2 -= t1;
-    xx -= t2;
+class PreciseTimer {
+  constructot(func, delay, ...args) {
+    this.delay = delay;
+    this.func = func;
+    this.args = args;
+    this._end = false;
   }
-  if (!this._end) { setTimeout(() => this.run(), xx); }
-};
-
+  begin() {
+    this.lastTick = (new Date()).getTime();
+    setTimeout(() => this.run(), this.delay);
+  }
+  end() { this._end = true; }
+  run() {
+    let t1, t2, d, xx, xx2, { delay } = this;
+    this.func(...this.args);
+    t1 = (new Date()).getTime();
+    d = delay - (t1 - this.lastTick);
+    this.lastTick = t1 + d;
+    xx = delay + d;
+    if (xx < 0) {
+      xx = -d / delay;
+      xx2 = Math.floor(xx) + 1;
+      xx = d + (xx2 * delay);
+      this.lastTick += (xx2 * delay);
+      t1 = (new Date()).getTime();
+      for (let i = 0; i <= xx2; i++) { this.func(...this.args); }
+      t2 = (new Date()).getTime();
+      t2 -= t1;
+      xx -= t2;
+    }
+    if (!this._end) { setTimeout(() => this.run(), xx); }
+  }
+}
 class Layer {
   constructor() { this._init = false; }
   init(kb) {

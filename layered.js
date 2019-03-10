@@ -38,13 +38,17 @@ class Layer {
     this.map = new Array((kb.isTwo ? 118 : 96) * 4);
     this.map.fill(-1);
     this._init = true;
+    this.enable();
   }
   clear() { this.kb = undefined; delete this.map; this._init = false; }
-  tick() {}
+  enable() { this.enabled = true; }
+  disable() { this.enabled = false; }
+  tick() { return this.enabled; }
   draw(map) {
     let { map: tmap, kb } = this, sa, da, fa, k;
     let f = (n) => Math.floor(n);
     if (!this._init) { return false; }
+    if (!this.enabled) { return true; }
     for (let i = 0, l = kb.isTwo ? 118 : 96; i < l; i++) {
       k = i * 4;
       if (tmap[k + 3] == -1) { continue; }

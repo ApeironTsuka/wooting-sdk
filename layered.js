@@ -1,5 +1,5 @@
 class PreciseTimer {
-  constructot(func, delay, ...args) {
+  constructor(func, delay, ...args) {
     this.delay = delay;
     this.func = func;
     this.args = args;

@@ -54,9 +54,9 @@ class AnalogController {
     return this.allKeys[keyCode];
   }
   readFull() {
-    let { BufferSize } = Analog, keys = new Array(BufferSize), written = 0;
+    let { BufferSize } = Analog, keys = new Array(), written = 0;
     let { allKeys } = this, k = 0;
-    for (let i = 0, l = allKeys.length; i < l; i++, k+=2) { if (allKeys[i] > 0) { keys[k] = i; keys[k + 1] = allKeys[i]; written++; } }
+    for (let i = 0, l = allKeys.length; i < l; i++) { if (allKeys[i] > 0) { keys[k++] = i; keys[k++] = allKeys[i]; written++; } }
     return { total: written, keys };
   }
   getFull() {

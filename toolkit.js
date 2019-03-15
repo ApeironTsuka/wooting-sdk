@@ -109,7 +109,7 @@ class Toolkit extends EventEmitter {
               n = locks.fn = !locks.fn;
               if (n) { setKey(lkeys[0], leds.profile.fnLockColor); } else { resetKey(lkeys[0]); }
             }
-            if ((states[2] != lstates[2]) && (states[2])) {
+            if ((states[2] != lstates[2]) && (states[2]) && (((!states[0]) && (locks.fn)) || ((states[0]) && (!locks.fn)))) {
               n = locks.win = !locks.win;
               if (n) { setKey(lkeys[2], leds.profile.winLockColor); } else { resetKey(lkeys[2]); }
             }

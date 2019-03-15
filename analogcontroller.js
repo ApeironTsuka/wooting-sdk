@@ -21,10 +21,9 @@ const Analog = {
   BufferSize: 32
 };
 function analogHdl(data) {
-  let { BufferSize } = Analog;
-  let { buffer, allKeys } = this;
+  let { BufferSize } = Analog, { allKeys } = this;
   allKeys.fill(0);
-  for (let i = 0; i < BufferSize; i += 2) { allKeys[data[i]] = Math.min(data[i + 1], 255); }
+  for (let i = 1; i < BufferSize; i += 2) { if (data[i] > 0) { allKeys[data[i - 1]] = data[i] & 0xff; } else { break; } }
 }
 class AnalogController {
   constructor() {
@@ -54,8 +53,7 @@ class AnalogController {
     return this.allKeys[keyCode];
   }
   readFull() {
-    let { BufferSize } = Analog, keys = new Array(), written = 0;
-    let { allKeys } = this, k = 0;
+    let keys = new Array(), written = 0, { allKeys } = this, k = 0;
     for (let i = 0, l = allKeys.length; i < l; i++) { if (allKeys[i] > 0) { keys[k++] = i; keys[k++] = allKeys[i]; written++; } }
     return { total: written, keys };
   }

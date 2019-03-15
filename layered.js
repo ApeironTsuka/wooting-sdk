@@ -129,8 +129,7 @@ class Renderer {
     let { layers } = this, i = layers.indexOf(layer);
     if (i == -1) { return false; }
     if (i == ind) { return true; }
-    else if (i < ind) { layers.splice(i, 1); layers.splice(ind, 0, layer); }
-    else { layers.splice(i, 1); layers.splice(ind - 1, 0, layer); }
+    else { layers.splice(i, 1); layers.splice(ind, 0, layer); }
   }
   remLayer(layer) {
     let { layers } = this, i = layers.indexOf(layer);

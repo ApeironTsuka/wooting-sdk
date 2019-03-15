@@ -21,6 +21,7 @@ class lockLayer extends Layer {
 }
 class Toolkit extends EventEmitter {
   constructor() {
+    super();
     this.enabled = false;
     this.settings = { locks: false, profile: false, layer: false };
   }

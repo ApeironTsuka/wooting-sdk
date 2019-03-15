@@ -1,4 +1,6 @@
-const { Keyboard } = require('./keyboard'), { Layer } = require('./layered');
+const { Keyboard } = require('./keyboard'),
+      { Layer } = require('./layered'),
+      { EventEmitter } = require('events');
 class lockLayer extends Layer {
   constructor(tk) { super(); this.tk = tk; }
   tick() {
@@ -17,7 +19,7 @@ class lockLayer extends Layer {
     }
   }
 }
-class Toolkit {
+class Toolkit extends EventEmitter {
   constructor() {
     this.enabled = false;
     this.settings = { locks: false, profile: false, layer: false };
@@ -76,6 +78,7 @@ class Toolkit {
                 if (locks.num) { leds.setKey(lkeys[5], ...leds.profile.numLockColor); }
               }
             }
+            this.emit('profileChanged');
           }
         } catch (e) { /* do nothing as it is 99% likely to be getCurrentProfile throwing it */ }
       }

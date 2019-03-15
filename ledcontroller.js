@@ -169,9 +169,10 @@ class LedController {
   getSafeLedIndex(row, col) {
     let { kb } = this, { None } = Keys;
     if (!kb) { return None; }
-    if (row >= RGB.Rows) { return None; }
-    else if ((!kb.deviceConfig.isTwo) && (col >= RGB.ColsOne)) { return false; }
-    else if ((kb.deviceConfig.isTwo) && (col >= RGB.ColsTwo)) { return false; }
+    if ((row < 0) || (col < 0)) { return None; }
+    else if (row >= RGB.Rows) { return None; }
+    else if ((!kb.deviceConfig.isTwo) && (col >= RGB.ColsOne)) { return None; }
+    else if ((kb.deviceConfig.isTwo) && (col >= RGB.ColsTwo)) { return None; }
     return rgbLedIndex[row][col];
   }
 
@@ -500,4 +501,4 @@ class LedController {
   }
 }
 LedController.Modes = RGB.Modes;
-module.exports = { LedController, Keys };
+module.exports = { LedController, Keys, RGB, rgbLedIndex };

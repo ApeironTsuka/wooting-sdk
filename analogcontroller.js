@@ -68,14 +68,14 @@ class AnalogController {
     return out;
   }
   getSafeAnalogIndex(row, col) {
-    let { kb } = this;
-    if (!kb) { return 255; }
-    else if ((row < 0) || (col < 0)) { return Keys.None; }
-    else if (row >= Analog.Rows) { return Keys.None; }
-    else if ((!kb.deviceConfig.isTwo) && (col >= Analog.ColsOne)) { return Keys.None; }
-    else if ((kb.deviceConfig.isTwo) && (col >= Analog.ColsTwo)) { return Keys.None; }
+    let { kb } = this, { None } = Keys;
+    if (!kb) { return None; }
+    else if ((row < 0) || (col < 0)) { return None; }
+    else if (row >= Analog.Rows) { return None; }
+    else if ((!kb.deviceConfig.isTwo) && (col >= Analog.ColsOne)) { return None; }
+    else if ((kb.deviceConfig.isTwo) && (col >= Analog.ColsTwo)) { return None; }
     return scanIndexArray[row][col];
   }
 }
 
-module.exports = { AnalogController, Keys };
+module.exports = { AnalogController, Keys, Analog, scanIndexArray };

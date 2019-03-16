@@ -51,6 +51,18 @@ class Keyboard {
     if (this.ledhdl) { this.ledhdl.close(); this.ledhdl = undefined; }
   }
   connected() { return this.analoghdl && this.ledhdl; }
+  pause() {
+    this.analoghdl.removeListener('data', this.analog.boundf);
+    delete this.analog.boundf;
+    this._ledsdk = this.leds.sdkEnabled;
+    this.disconnect();
+  }
+  resume() {
+    this.analoghdl = new HID.HID(this._analog);
+    this.ledhdl = new HID.HID(this._led);
+    this.analog.kb = this;
+    if (this._ledsdk) { this.leds.enableSdk(); this.leds.updateKeyboard(true); }
+  }
 
   sendCommand(inbuf) {
     let { CommandSize } = USB;
@@ -246,12 +258,14 @@ class Keyboard {
         if (!found) { continue; }
         board = new Keyboard();
         board.ledhdl = hdl;
+        board._led = devices[i].path;
       } else if (devices[i].interface == hn) {
         if (!found) { continue; }
         let hdl = new HID.HID(devices[i].path);
         found = !!hdl;
         if (!found) { continue; }
         board.analoghdl = hdl;
+        board._analog = devices[i].path;
         board.isTwo = devices[i].productId == TWO_PID;
         found = board.init();
         break;

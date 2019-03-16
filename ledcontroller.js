@@ -156,7 +156,6 @@ class LedController {
     if (ks) {
       if (!kb.sendQuery(USB.SdkInit)) { return false; }
       this.sdkEnabled = true;
-      kb.ledhdl.readTimeout(50);
       return true;
     } else { return this.reset(); }
   }

@@ -7,9 +7,9 @@ class PreciseTimer {
   }
   begin() {
     this.lastTick = (new Date()).getTime();
-    setTimeout(() => this.run(), this.delay);
+    this.tmr = setTimeout(() => this.run(), this.delay);
   }
-  end() { this._end = true; }
+  end() { clearTimeout(this.tmr); this._end = true; }
   run() {
     let t1, t2, d, xx, xx2, { delay } = this;
     this.func(...this.args);
@@ -28,7 +28,7 @@ class PreciseTimer {
       t2 -= t1;
       xx -= t2;
     }
-    if (!this._end) { setTimeout(() => this.run(), xx); }
+    if (!this._end) { this.tmr = setTimeout(() => this.run(), xx); }
   }
 }
 class Layer {

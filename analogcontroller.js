@@ -35,12 +35,11 @@ class AnalogController {
   }
   set kb(b) {
     if (!b.connected()) { throw new Error(`Keyboard isn't connected`); }
-    if ((this.kb) && (this.boundf)) { this.kb.analoghdl.removeEventListener('data', this.boundf); }
+    if ((this.kb) && (this.boundf)) { this.kb.analoghdl.removeListener('data', this.boundf); }
     this._kb = b;
-    this.hdl = b.analoghdl;
     this.allKeys = new Array(b.deviceConfig.isTwo ? 117 : 96);
     this.allKeys.fill(0);
-    this.hdl.on('data', this.boundf = analogHdl.bind(this));
+    this._kb.analoghdl.on('data', this.boundf = analogHdl.bind(this));
   }
   get kb() { return this._kb; }
   readLoc(row, col) { return this.readKey(this.getSafeAnalogIndex(row, col)); }

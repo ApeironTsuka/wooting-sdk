@@ -62,12 +62,20 @@ class Keyboard {
     // Clear out any replies on this interface from calls other apps made while paused
     while (clear = this.ledhdl.readTimeout(0)) { if (clear.length == 0) { break; } }
     this.paused = false;
-    if (this._ledsdk) { this.leds.enableSdk(); this.leds.updateKeyboard(true); }
+    if (this._ledsdk) {
+      this.getDeviceConfig();
+      this.getFnKeys();
+      this.getActuationPoint();
+      this.getDigitalEnabled(this.getCurrentProfile());
+      this.leds.enableSdk();
+      this.leds.loadCurrentProfile();
+      this.leds.updateKeyboard(true);
+    }
   }
 
-  sendCommand(inbuf) {
+  sendCommand(inbuf, force) {
     let { CommandSize } = USB;
-    if (!this.connected()) { return false; }
+    if ((!this.connected()) && (!force)) { return false; }
     let buf = new Array(CommandSize);
     buf.fill(0);
     buf[0] = 0;
@@ -83,9 +91,9 @@ class Keyboard {
     if (this.ledhdl.write(buf) == CommandSize) { return true; }
     else { this.disconnect(); return false; }
   }
-  sendQuery(cmd, param0 = 0, param1 = 0, param2 = 0, param3 = 0) {
+  sendQuery(cmd, param0 = 0, param1 = 0, param2 = 0, param3 = 0, force) {
     let { ReportSize } = USB;
-    if (!this.connected()) { return undefined; }
+    if ((!this.connected()) && (!force)) { return undefined; }
     let buf = new Array(ReportSize);
     buf[0] = 0;
     buf[1] = 0xd0;

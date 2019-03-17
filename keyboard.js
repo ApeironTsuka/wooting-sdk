@@ -29,6 +29,7 @@ class Keyboard {
     this.analoghdl = undefined;
     this.ledhdl = undefined;
     this._init = false;
+    this.paused = false;
     this.locks = { num: false, caps: false, scroll: false, fn: false, win: false };
   }
   init() {
@@ -50,17 +51,17 @@ class Keyboard {
     if (this.analoghdl) { this.analoghdl.close(); this.analoghdl = undefined; }
     if (this.ledhdl) { this.ledhdl.close(); this.ledhdl = undefined; }
   }
-  connected() { return this.analoghdl && this.ledhdl; }
+  connected() { return this.analoghdl && this.ledhdl && !this.paused; }
   pause() {
-    this.analoghdl.removeListener('data', this.analog.boundf);
-    delete this.analog.boundf;
     this._ledsdk = this.leds.sdkEnabled;
-    this.disconnect();
+    if (this._ledsdk) { this.leds.reset(); }
+    this.paused = true;
   }
   resume() {
-    this.analoghdl = new HID.HID(this._analog);
-    this.ledhdl = new HID.HID(this._led);
-    this.analog.kb = this;
+    let clear;
+    // Clear out any replies on this interface from calls other apps made while paused
+    while (clear = this.ledhdl.readTimeout(0)) { if (clear.length == 0) { break; } }
+    this.paused = false;
     if (this._ledsdk) { this.leds.enableSdk(); this.leds.updateKeyboard(true); }
   }
 
@@ -258,14 +259,12 @@ class Keyboard {
         if (!found) { continue; }
         board = new Keyboard();
         board.ledhdl = hdl;
-        board._led = devices[i].path;
       } else if (devices[i].interface == hn) {
         if (!found) { continue; }
         let hdl = new HID.HID(devices[i].path);
         found = !!hdl;
         if (!found) { continue; }
         board.analoghdl = hdl;
-        board._analog = devices[i].path;
         board.isTwo = devices[i].productId == TWO_PID;
         found = board.init();
         break;

@@ -152,8 +152,8 @@ class LedController {
   enableSdk(ks = true) {
     let s = !!ks, { kb } = this;
     if (!kb) { return false; }
-    if (ks == this.sdkEnabled) { return true; }
-    if (ks) {
+    if (s == this.sdkEnabled) { return true; }
+    if (s) {
       if (!kb.sendQuery(USB.SdkInit)) { return false; }
       this.sdkEnabled = true;
       return true;

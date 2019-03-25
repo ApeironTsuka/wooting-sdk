@@ -112,30 +112,33 @@ class Renderer {
     this.map = new Array((kb.isTwo ? 118 : 96) * 4);
     this.outmap = new Array((kb.isTwo ? 118 : 96) * 3);
     this.map.fill(0);
+    this.z = 0;
   }
   init() {
     this.tmr = new PreciseTimer(() => this.run(), 100);
     this.tmr.begin();
   }
   stop() { this.tmr.end(); }
-  addLayer(layer, ind = -1) {
-    if (ind == -1) { this.layers.push(layer); }
-    else { this.layers.splice(ind, 0, layer); }
+  sortLayers() { this.layers = this.layers.sort((a, b) => a.z > b.z ? 1 : a.z < b.z ? -1 : 0); }
+  addLayer(layer, z = -1) {
+    if (z == -1) { layer.z = this.z++; }
+    else { layer.z = z; }
+    this.layers.push(layer);
     layer.init(this.kb);
+    this.sortLayers();
     return true;
   }
-  moveLayer(layer, ind = -1) {
-    if (ind == -1) { return false; }
-    let { layers } = this, i = layers.indexOf(layer);
-    if (i == -1) { return false; }
-    if (i == ind) { return true; }
-    else { layers.splice(i, 1); layers.splice(ind, 0, layer); }
+  moveLayer(layer, z = -1) {
+    if (z == -1) { return false; }
+    else if (layer.z == z) { return true; }
+    else { layer.z = z; this.sortLayers(); }
   }
   remLayer(layer) {
     let { layers } = this, i = layers.indexOf(layer);
     if (i == -1) { return true; }
     layers.splice(i, 1);
     layer.clear();
+    this.sortLayers();
     return true;
   }
 

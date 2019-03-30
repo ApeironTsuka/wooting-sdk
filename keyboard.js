@@ -208,7 +208,7 @@ class Keyboard {
   }
   getDigitalEnabled(n = 0) {
     if (!this.connected()) { return false; }
-    if (n == 0) { return true; }
+    if (n == 0) { return this.digitalEnabled = true; }
     if ((n < 1) || (n > 3)) { return false; }
     let buffer;
     if (!(buffer = this.sendQuery(USB.GetAnalogProfileMainPart, n-1))) { return false; }

@@ -24,6 +24,7 @@ function analogHdl(data) {
   let { BufferSize } = Analog, { allKeys } = this;
   allKeys.fill(0);
   for (let i = 1; i < BufferSize; i += 2) { if (data[i] > 0) { allKeys[data[i - 1]] = data[i] & 0xff; } else { break; } }
+  if (this.analogcb) { this.analogcb(Array.from(data)); }
 }
 class AnalogController {
   constructor() {
@@ -32,6 +33,7 @@ class AnalogController {
     this._kb = undefined;
     this._autoUpd = false;
     this.boundf = undefined;
+    this.analogcb = undefined;
   }
   set kb(b) {
     if (!b.connected()) { throw new Error(`Keyboard isn't connected`); }
@@ -42,6 +44,7 @@ class AnalogController {
     this._kb.analoghdl.on('data', this.boundf = analogHdl.bind(this));
   }
   get kb() { return this._kb; }
+  watch(cb) { this.analogcb = cb; }
   readLoc(row, col) { return this.readKey(this.getSafeAnalogIndex(row, col)); }
   readKey(keyCode) {
     let { kb, buffer } = this, { BufferSize } = Analog;
@@ -52,9 +55,9 @@ class AnalogController {
     return this.allKeys[keyCode];
   }
   readFull() {
-    let keys = new Array(), written = 0, { allKeys } = this, k = 0;
-    for (let i = 0, l = allKeys.length; i < l; i++) { if (allKeys[i] > 0) { keys[k++] = i; keys[k++] = allKeys[i]; written++; } }
-    return { total: written, keys };
+    let keys = new Array(), total = 0, { allKeys } = this, k = 0;
+    for (let i = 0, l = allKeys.length; i < l; i++) { if (allKeys[i] > 0) { keys[k++] = i; keys[k++] = allKeys[i]; total++; } }
+    return { total, keys };
   }
   getFull() {
     let { kb } = this, out = [], buffer;

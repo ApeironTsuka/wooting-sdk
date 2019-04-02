@@ -7,6 +7,8 @@ const USB = {
   VID: 0x03eb,
   ONE_PID: 0xff01,
   TWO_PID: 0xff02,
+  ANALOG_PAGE: 0xFFFF,
+  CONFIG_PAGE: 0x1337,
   // queries
   GetVersion: 1,
   GetSerial: 3,
@@ -245,10 +247,9 @@ class Keyboard {
     }
     return crc & 0xffff;
   }
-  static get() {
+  static _deviceList() {
     let { VID, ONE_PID, TWO_PID } = USB;
-    let board;
-    let devices = HID.devices(), found = false, n, hn = 0;
+    let devices = HID.devices();
     for (let i = 0, l = devices.length; i < l; i++) {
       if ((devices[i].vendorId != VID) ||
           ((devices[i].productId != ONE_PID) &&
@@ -258,6 +259,11 @@ class Keyboard {
         l--;
       }
     }
+    return devices;
+  }
+  static getUnpatched() {
+    let { TWO_PID } = USB;
+    let board, devices = Keyboard._deviceList(), found = false, n, hn = 0;
     if (devices.length == 0) { return false; }
     for (let i = 0, l = devices.length; i < l; i++) {
       if (devices[i].interface > hn) { hn = devices[i].interface; }
@@ -268,23 +274,48 @@ class Keyboard {
         let hdl = new HID.HID(devices[i].path);
         found = !!hdl;
         if (!found) { continue; }
-        board = new Keyboard();
+        if (!board) { board = new Keyboard(); }
         board.ledhdl = hdl;
       } else if (devices[i].interface == hn) {
-        if (!found) { continue; }
         let hdl = new HID.HID(devices[i].path);
         found = !!hdl;
         if (!found) { continue; }
+        if (!board) { board = new Keyboard(); }
         board.analoghdl = hdl;
         board.isTwo = devices[i].productId == TWO_PID;
-        found = board.init();
-        break;
       }
     }
-    return found?board:false;
+    if (found) { return board.ledhdl && board.analoghdl ? board.init() ? board : false : false; } else { return false; }
+  }
+  static getPatched() {
+    let { TWO_PID, ANALOG_PAGE, CONFIG_PAGE } = USB;
+    let board, devices = Keyboard._deviceList(), found = false;
+    if (devices.length == 0) { return false; }
+    for (let i = 0, l = devices.length; i < l; i++) {
+      if (devices[i].usagePage == CONFIG_PAGE) {
+        let hdl = new HID.HID(devices[i].path);
+        found = !!hdl;
+        if (!found) { continue; }
+        if (!board) { board = new Keyboard(); }
+        board.ledhdl = hdl;
+      } else if (devices[i].usagePage == ANALOG_PAGE) {
+        let hdl = new HID.HID(devices[i].path);
+        found = !!hdl;
+        if (!found) { continue; }
+        if (!board) { board = new Keyboard(); }
+        board.analoghdl = hdl;
+        board.isTwo = devices[i].productId == TWO_PID;
+      }
+    }
+    if (found) { return board.ledhdl && board.analoghdl ? board.init() ? board : false : false; } else { return false; }
+  }
+  static get() {
+    if (Keyboard.patchedHid) { return this.getPatched(); }
+    else { return this.getUnpatched(); }
   }
 }
 Keyboard.Analog = AKeys;
 Keyboard.LEDs = LKeys;
 Keyboard.Modes = LedController.Modes;
+Keyboard.patchedHid = true;
 module.exports = { Keyboard };

@@ -9,7 +9,7 @@
   "author": "ApeironTsuka",
   "license": "ISC",
   "dependencies": {
-    "node-hid": "^0.7.7"
+    "node-hid": "github:ApeironTsuka/node-hid"
   },
   "repository": {
     "type": "git",

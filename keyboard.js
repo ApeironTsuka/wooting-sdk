@@ -317,5 +317,5 @@ class Keyboard {
 Keyboard.Analog = AKeys;
 Keyboard.LEDs = LKeys;
 Keyboard.Modes = LedController.Modes;
-Keyboard.patchedHid = true;
+Keyboard.patchedHid = false;
 module.exports = { Keyboard };

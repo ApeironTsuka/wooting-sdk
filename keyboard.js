@@ -248,7 +248,7 @@ class Keyboard {
     return crc & 0xffff;
   }
   static _deviceList() {
-    let { VID, ONE_PID, TWO_PID } = USB;
+    let { VID, ONE_PID, TWO_PID } = USB, pages = true;
     let devices = HID.devices();
     for (let i = 0, l = devices.length; i < l; i++) {
       if ((devices[i].vendorId != VID) ||
@@ -257,14 +257,14 @@ class Keyboard {
         devices.splice(i, 1);
         i--;
         l--;
-      }
+      } else if (devices[i].usagePage === undefined) { pages = false; }
     }
+    Keyboard._pages = pages;
     return devices;
   }
-  static getUnpatched() {
+  static getUnpatched(devices) {
     let { TWO_PID } = USB;
-    let board, devices = Keyboard._deviceList(), found = false, n, hn = 0;
-    if (devices.length == 0) { return false; }
+    let board, found = false, n, hn = 0;
     for (let i = 0, l = devices.length; i < l; i++) {
       if (devices[i].interface > hn) { hn = devices[i].interface; }
     }
@@ -287,10 +287,11 @@ class Keyboard {
     }
     if (found) { return board.ledhdl && board.analoghdl ? board.init() ? board : false : false; } else { return false; }
   }
-  static getPatched() {
+  static get() {
     let { TWO_PID, ANALOG_PAGE, CONFIG_PAGE } = USB;
     let board, devices = Keyboard._deviceList(), found = false;
     if (devices.length == 0) { return false; }
+    if (!Keyboard._pages) { return Keyboard.getUnpatched(devices); }
     for (let i = 0, l = devices.length; i < l; i++) {
       if (devices[i].usagePage == CONFIG_PAGE) {
         let hdl = new HID.HID(devices[i].path);
@@ -309,13 +310,9 @@ class Keyboard {
     }
     if (found) { return board.ledhdl && board.analoghdl ? board.init() ? board : false : false; } else { return false; }
   }
-  static get() {
-    if (Keyboard.patchedHid) { return this.getPatched(); }
-    else { return this.getUnpatched(); }
-  }
 }
 Keyboard.Analog = AKeys;
 Keyboard.LEDs = LKeys;
 Keyboard.Modes = LedController.Modes;
-Keyboard.patchedHid = false;
+Keyboard._pages = false;
 module.exports = { Keyboard };

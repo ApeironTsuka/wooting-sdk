@@ -86,6 +86,16 @@ class Layer {
     map[key * 4] = map[key * 4 + 1] = map[key * 4 + 2] = map[key * 4 + 3] = -1;
     return true;
   }
+  fillColormap(r, g, b, a = 255) {
+    let { map } = this;
+    for (let i = 0, l = this.kb.isTwo ? 118 : 96; i < l; i++) {
+      map[i * 4] = r;
+      map[i * 4 + 1] = g;
+      map[i * 4 + 2] = b;
+      map[i * 4 + 3] = a;
+    }
+    return true;
+  }
   setColormap(map) {
     let { map: tmap } = this;
     if (!this._init) { return false; }
@@ -114,8 +124,8 @@ class Renderer {
     this.map.fill(0);
     this.z = 0;
   }
-  init() {
-    this.tmr = new PreciseTimer(() => this.run(), 100);
+  init(speed = 100) {
+    this.tmr = new PreciseTimer(() => this.run(), speed);
     this.tmr.begin();
   }
   stop() { this.tmr.end(); }

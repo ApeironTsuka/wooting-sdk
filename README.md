@@ -7,6 +7,10 @@
 ## Enumerate USB devices and find+return the first One/Two found
 `let kb = Keyboard.get();`
 
+## Enumerate USB devices and find+return all One/Two found
+`let kb = Keyboard.getAll();`  
+Note a caveat that this relies on a feature in newer firmwares and will return only the first device found if any of the found One/Two are missing the feature.
+
 ## Internal setup
 `kb.init();`
 

@@ -38,6 +38,7 @@ class Keyboard {
     if (!this.connected()) { return false; }
     if (this._init) { return true; }
     this._init = true;
+    this.getSerialNumber();
     this.getDeviceConfig();
     this.getFnKeys();
     this.getActuationPoint();
@@ -248,7 +249,7 @@ class Keyboard {
     return crc & 0xffff;
   }
   static _deviceList() {
-    let { VID, ONE_PID, TWO_PID } = USB, pages = true;
+    let { VID, ONE_PID, TWO_PID } = USB, pages = true, sn = false;
     let devices = HID.devices();
     for (let i = 0, l = devices.length; i < l; i++) {
       if ((devices[i].vendorId != VID) ||
@@ -257,14 +258,47 @@ class Keyboard {
         devices.splice(i, 1);
         i--;
         l--;
-      } else if (devices[i].usagePage === undefined) { pages = false; }
+      } else {
+        if (devices[i].usagePage === undefined) { pages = false; }
+        if (devices[i].serialNumber !== undefined) { sn = true; }
+      }
     }
     Keyboard._pages = pages;
+    Keyboard._sn = sn;
     return devices;
   }
-  static getUnpatched(devices) {
-    let { TWO_PID } = USB;
-    let board, found = false, n, hn = 0;
+  static _fixupNoSN(board) {
+    if (board) {
+      if ((!board.ledhdl) || (!board.analoghdl)) {
+        if (board.ledhdl) { board.ledhdl.close(); }
+        if (board.analoghdl) { board.analoghdl.close(); }
+        return false;
+      }
+      else if (!board.init()) { board.ledhdl.close(); board.analoghdl.close(); return false; }
+      else { return board; }
+    }
+    return false;
+  }
+  static _fixupSN(list) {
+    let out = [], sn;
+    for (let i = 0, keys = Object.keys(list), l = keys.length; i < l; i++) {
+      sn = list[keys[i]];
+      if ((sn.ledhdl) && (sn.analoghdl)) {
+        let board = new Keyboard();
+        board.ledhdl = sn.ledhdl;
+        board.analoghdl = sn.analoghdl;
+        board.isTwo = sn.isTwo;
+        if (board.init()) { out.push(board); }
+        else { board.ledhdl.close(); board.analoghdl.close(); }
+      } else {
+        if (sn.ledhdl) { sn.ledhdl.close(); }
+        if (sn.analoghdl) { sn.analoghdl.close(); }
+      }
+    }
+    return out;
+  }
+  static getUnpatchedNoSN(devices) {
+    let { TWO_PID } = USB, board, found = false, n, hn = 0;
     for (let i = 0, l = devices.length; i < l; i++) {
       if (devices[i].interface > hn) { hn = devices[i].interface; }
     }
@@ -272,47 +306,93 @@ class Keyboard {
     for (let i = 0, l = devices.length; i < l; i++) {
       if (devices[i].interface == n) {
         let hdl = new HID.HID(devices[i].path);
-        found = !!hdl;
-        if (!found) { continue; }
+        if (!hdl) { continue; }
         if (!board) { board = new Keyboard(); }
         board.ledhdl = hdl;
       } else if (devices[i].interface == hn) {
         let hdl = new HID.HID(devices[i].path);
-        found = !!hdl;
-        if (!found) { continue; }
+        if (!hdl) { continue; }
         if (!board) { board = new Keyboard(); }
         board.analoghdl = hdl;
         board.isTwo = devices[i].productId == TWO_PID;
       }
     }
-    if (found) { return board.ledhdl && board.analoghdl ? board.init() ? board : false : false; } else { return false; }
+    return Keyboard._fixupNoSN(board);
   }
-  static get() {
-    let { TWO_PID, ANALOG_PAGE, CONFIG_PAGE } = USB;
-    let board, devices = Keyboard._deviceList(), found = false;
-    if (devices.length == 0) { return false; }
-    if (!Keyboard._pages) { return Keyboard.getUnpatched(devices); }
+  static getUnpatchedSN(devices) {
+    let { TWO_PID } = USB, list = {}, sn;
+    for (let i = 0, l = devices.length; i < l; i++) {
+      sn = devices[i].serialNumber;
+      if (!list[sn]) { list[sn] = { hn: 0 }; }
+      if (devices[i].interface > list[sn].hn) { list[sn].hn = devices[i].interface; list[sn].n = list[sn].hn - 4; }
+    }
+    for (let i = 0, l = devices.length; i < l; i++) {
+      sn = devices[i].serialNumber;
+      if (devices[i].interface == list[sn].n) {
+        let hdl = new HID.HID(devices[i].path);
+        if (!hdl) { continue; }
+        list[sn].ledhdl = hdl;
+      } else if (devices[i].interface == list[sn].hn) {
+        let hdl = new HID.HID(devices[i].path);
+        if (!hdl) { continue; }
+        list[sn].analoghdl = hdl;
+        list[sn].isTwo = devices[i].productId == TWO_PID;
+      }
+    }
+    return Keyboard._fixupSN(list);
+  }
+  static getNoSN(devices) {
+    let { TWO_PID, ANALOG_PAGE, CONFIG_PAGE } = USB, board;
     for (let i = 0, l = devices.length; i < l; i++) {
       if (devices[i].usagePage == CONFIG_PAGE) {
         let hdl = new HID.HID(devices[i].path);
-        found = !!hdl;
-        if (!found) { continue; }
+        if (!hdl) { continue; }
         if (!board) { board = new Keyboard(); }
         board.ledhdl = hdl;
       } else if (devices[i].usagePage == ANALOG_PAGE) {
         let hdl = new HID.HID(devices[i].path);
-        found = !!hdl;
-        if (!found) { continue; }
+        if (!hdl) { continue; }
         if (!board) { board = new Keyboard(); }
         board.analoghdl = hdl;
         board.isTwo = devices[i].productId == TWO_PID;
       }
     }
-    if (found) { return board.ledhdl && board.analoghdl ? board.init() ? board : false : false; } else { return false; }
+    return Keyboard._fixupNoSN(board);
   }
+  static getSN(devices) {
+    let { TWO_PID, ANALOG_PAGE, CONFIG_PAGE } = USB, list = {}, sn;
+    for (let i = 0, l = devices.length; i < l; i++) {
+      sn = devices[i].serialNumber;
+      if (devices[i].usagePage == CONFIG_PAGE) {
+        let hdl = new HID.HID(devices[i].path);
+        if (!hdl) { continue; }
+        if (!list[sn]) { list[sn] = {}; }
+        list[sn].ledhdl = hdl;
+      } else if (devices[i].usagePage == ANALOG_PAGE) {
+        let hdl = new HID.HID(devices[i].path);
+        if (!hdl) { continue; }
+        if (!list[sn]) { list[sn] = {}; }
+        list[sn].analoghdl = hdl;
+        list[sn].isTwo = devices[i].productId == TWO_PID;
+      }
+    }
+    return Keyboard._fixupSN(list);
+  }
+  static getAll() {
+    let devices = Keyboard._deviceList();
+    if (!Keyboard._sn) {
+      // FIXME non-SN path currently doesn't detect multiple devices
+      if (Keyboard._pages) { return [ Keyboard.getNoSN(devices) ]; }
+      else { return [ Keyboard.getUnpatchedNoSN(devices) ]; }
+    }
+    if (Keyboard._pages) { return Keyboard.getSN(devices); }
+    else { return Keyboard.getUnpatchedSN(devices); }
+  }
+  static get() { let all = Keyboard.getAll(); if (all[0] === undefined) { return false; } return all[0]; }
 }
 Keyboard.Analog = AKeys;
 Keyboard.LEDs = LKeys;
 Keyboard.Modes = LedController.Modes;
 Keyboard._pages = false;
+Keyboard._sn = false;
 module.exports = { Keyboard };
